@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "questr",
+  "version": "${version}",
+  "name": "Questr",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "LGPL-3.0",
+  "icon": "assets/questr/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "de.tomalbrc.questr.QuestrMod"
+    ]
+  },
+  "mixins": [
+    "questr.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": ">=${minecraft_version}"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_3222": ["de/tomalbrc/questr/injection/PlayerQuestExtension"]
+    }
+  }
+}

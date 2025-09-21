@@ -1,0 +1,26 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {
+        " ": 10,
+        "\uE200": 1
+      }
+    },
+    {
+      "type": "bitmap",
+      "file": "questr:font/boxy_bold_font.png",
+      "ascent": 3,
+      "height": 9,
+      "chars": [
+        "!\"#$%&'()*+,-./",
+        "0123456789\u0000\u0000\u0000\u0000\u0000",
+        ":;<=>?@\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "ABCDEFGHIJKLM\u0000\u0000",
+        "NOPQRSTUVWXYZ\u0000\u0000",
+        "[\\]^_`{|}~\u0000\u0000\u0000\u0000\u0000"
+      ]
+    }
+
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "providers": [
+    {"type":"bitmap","file":"questr:font/ascii.png","ascent":3,"height":8,"chars":["\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000","\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000","\u0000!\"#$%&'()*+,-./","0123456789:;<=>?","@ABCDEFGHIJKLMNO","PQRSTUVWXYZ[\\]^_","`abcdefghijklmno","pqrstuvwxyz{|}~\u0000","\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000","\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000£\u0000\u0000ƒ","\u0000\u0000\u0000\u0000\u0000\u0000ªº\u0000\u0000¬\u0000\u0000\u0000«»","░▒▓│┤╡╢╖╕╣║╗╝╜╛┐","└┴┬├─┼╞╟╚╔╩╦╠═╬╧","╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀","\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000∅∈\u0000","≡±≥≤⌠⌡÷≈°∙\u0000√ⁿ²■\u0000"]},
+    {
+      "type": "space",
+      "advances": {
+        " ": 4,
+        "\uE200": -1,
+        "\uE201": -10,
+        "\uE202": 1
+      }
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "\uE100"
+      ],
+      "file": "questr:font/ui/background_edge.png",
+      "height": 14,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "\uE101"
+      ],
+      "file": "questr:font/ui/background.png",
+      "height": 14,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "←"
+      ],
+      "file": "questr:font/ui/arrow0.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "↖"
+      ],
+      "file": "questr:font/ui/arrow1.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "↑"
+      ],
+      "file": "questr:font/ui/arrow2.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "↗"
+      ],
+      "file": "questr:font/ui/arrow3.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "→"
+      ],
+      "file": "questr:font/ui/arrow4.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "↘"
+      ],
+      "file": "questr:font/ui/arrow5.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "↓"
+      ],
+      "file": "questr:font/ui/arrow6.png",
+      "height": 16,
+      "type": "bitmap"
+    },
+    {
+      "ascent": 6,
+      "chars": [
+        "↙"
+      ],
+      "file": "questr:font/ui/arrow7.png",
+      "height": 16,
+      "type": "bitmap"
+    }
+  ]
+}

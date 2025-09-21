@@ -1,0 +1,5 @@
+accessWidener   v2  named
+
+accessible class net/minecraft/network/protocol/game/ClientboundBossEventPacket$UpdateNameOperation
+accessible method net/minecraft/network/protocol/game/ClientboundBossEventPacket$UpdateNameOperation <init> (Lnet/minecraft/network/chat/Component;)V
+accessible method net/minecraft/network/protocol/game/ClientboundBossEventPacket <init> (Ljava/util/UUID;Lnet/minecraft/network/protocol/game/ClientboundBossEventPacket$Operation;)V
