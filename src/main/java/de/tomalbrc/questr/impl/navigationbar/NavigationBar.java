@@ -1,7 +1,7 @@
 package de.tomalbrc.questr.impl.navigationbar;
 
 import de.tomalbrc.dialogutils.util.TextAligner;
-import eu.pb4.placeholders.api.TextParserUtils;
+import de.tomalbrc.questr.impl.util.TextUtil;
 import net.fabricmc.loader.impl.util.StringUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,41 +21,32 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.UUID;
 
 public class NavigationBar {
     private static final String BACKGROUND_EDGE = "\uE100\uE200";
     private static final String BACKGROUND = "\uE101\uE200";
     private static final String NEGATIVE_SPACE = "\uE200";
-    private static final String NEGATIVE_SPACE10 = "\uE200";
     private static final ResourceLocation NAV_FONT = ResourceLocation.fromNamespaceAndPath("questr", "nav");
-    private static final ResourceLocation FONT_BOXY = ResourceLocation.fromNamespaceAndPath("questr", "boxy");
     private static final Style NAV_STYLE_WHITE = Style.EMPTY.withFont(NAV_FONT).withShadowColor(0).withColor(0xFFFFFF);
     private static final Style NAV_STYLE_BLACK = Style.EMPTY.withFont(NAV_FONT).withShadowColor(0).withColor(0);
 
-    private static final Style STYLE_WHITE_BOXY = Style.EMPTY.withFont(FONT_BOXY).withShadowColor(0).withColor(0xFFFFFF);
-    private static final Style STYLE_WHITE_VANILLA = Style.EMPTY.withFont(Style.DEFAULT_FONT).withShadowColor(0).withColor(0xFFFFFF);
-
     private final MinecraftServer server;
     private final @Nullable String message;
-    private final @NotNull UUID playerUUID;
+    private final @NotNull ServerPlayer player;
 
     private final @NotNull BlockPos targetPos;
     private final @NotNull BossEvent bossEvent;
 
     private boolean active;
-
     private boolean visible;
-    private Vec3 oldPos = Vec3.ZERO;
-    private float oldRot = 0;
 
-    public NavigationBar(@NotNull MinecraftServer server, @NotNull UUID playerUUID, @Nullable String message, @NotNull BlockPos targetPos) {
+    public NavigationBar(@NotNull ServerPlayer player, @Nullable String message, @NotNull BlockPos targetPos) {
         this.message = message;
-        this.server = server;
-        this.playerUUID = playerUUID;
+        this.player = player;
+        this.server = player.getServer();
         this.targetPos = targetPos;
-        this.active = false;
-        this.visible = false;
+        this.active = true;
+        this.visible = true;
 
         this.bossEvent = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
         this.bossEvent.setProgress(0);
@@ -68,13 +59,10 @@ public class NavigationBar {
     public void setActive(boolean active) {
         this.active = active;
 
-        ServerPlayer player = server.getPlayerList().getPlayer(this.playerUUID);
-        if (player != null) {
-            if (active) {
-                player.connection.send(ClientboundBossEventPacket.createAddPacket(this.bossEvent));
-            } else {
-                player.connection.send(ClientboundBossEventPacket.createRemovePacket(this.bossEvent.getId()));
-            }
+        if (active) {
+            this.player.connection.send(ClientboundBossEventPacket.createAddPacket(this.bossEvent));
+        } else {
+            this.player.connection.send(ClientboundBossEventPacket.createRemovePacket(this.bossEvent.getId()));
         }
     }
 
@@ -102,17 +90,17 @@ public class NavigationBar {
     }
 
     public MutableComponent space(int s) {
-        return TextParserUtils.formatText(String.format("<font:questr:nav>%s</font>", "\uE202".repeat(s))).copy();
+        return TextUtil.format(String.format("<font:questr:nav>%s</font>", "\uE202".repeat(s))).copy();
     }
 
     public MutableComponent world(String name) {
-        int width = 70;
+        int width = 58;
         var timeText = TextAligner.alignLine("",
                 String.format("<white><font:questr:nav>%s</font></white>", name),
                 "",
                 width
         );
-        return background(width).append(TextParserUtils.formatText(timeText));
+        return background(width).append(TextUtil.format(timeText));
     }
 
     public MutableComponent clock(long time) {
@@ -122,15 +110,11 @@ public class NavigationBar {
                 "",
                 width
         );
-        return background(width).append(TextParserUtils.formatText(timeText));
+        return background(width).append(TextUtil.format(timeText));
     }
 
     public MutableComponent background(int width) {
         return Component.literal(BACKGROUND_EDGE + BACKGROUND.repeat(width-2) + BACKGROUND_EDGE + NEGATIVE_SPACE.repeat(width)).withStyle(NAV_STYLE_BLACK);
-    }
-
-    public MutableComponent backgroundNoShift(int width) {
-        return Component.literal(BACKGROUND_EDGE + BACKGROUND.repeat(width-2) + BACKGROUND_EDGE).withStyle(NAV_STYLE_BLACK);
     }
 
     public Component message(ServerPlayer player) {
@@ -145,14 +129,20 @@ public class NavigationBar {
             String arrow = getArrow(delta, yRot);
 
             var icon = Component.literal(arrow).withStyle(NAV_STYLE_WHITE);
-            var str = String.format("%3.0f BLOCKS", distance);
-            if (distance > 999) str = String.format("FAR AWAY  ", distance);
-            var padding = width-(str.length()*10) - 17;//16+1=arrow
-            var paddingText = Component.literal("\uE200".repeat(padding)).withStyle(STYLE_WHITE_BOXY);
+            String str;
+            if (distance > 9999)
+                str = String.format("Faw Away", distance);
+            else
+                str = String.format("%4.0f Blocks Away", distance);
+
+            str = String.format("<white><font:%s> %s </font>", NAV_FONT, str);
+            //int w = TextAligner.getTextWidth(TextAligner.stripTags(str));
+            var message = TextUtil.format(TextAligner.alignSingleLine(str, TextAligner.Align.RIGHT, width-18));
+
             var worldName = player.level().dimension().location().getPath()
                     .replace("the_", "")
                     .replace("_", " ");
-            return background(width).append(icon).append(Component.literal(str).withStyle(STYLE_WHITE_BOXY)).append(paddingText).append(space(1)).append(world(StringUtil.capitalize(worldName))).append(space(1)).append(clock(player.level().dayTime()));
+            return background(width).append(space(1)).append(icon).append(message).append(space(1)).append(world(StringUtil.capitalize(worldName))).append(space(1)).append(clock(player.level().dayTime()));
         }
 
         return null;
@@ -178,8 +168,7 @@ public class NavigationBar {
     }
 
     public void update() {
-        ServerPlayer player = server.getPlayerList().getPlayer(this.playerUUID);
-        if (player == null || player.isRemoved()) {
+        if (player.isRemoved()) {
             return;
         }
 
@@ -192,15 +181,10 @@ public class NavigationBar {
         }
 
         if (active) {
-            if (true|| (player.position().distanceTo(oldPos) > 0.1 || Math.abs(player.yHeadRot-oldRot) > 1)) {
-                var msg = this.message(player);
-                if (msg != null) {
-                    var p = new ClientboundBossEventPacket(bossEvent.getId(), new ClientboundBossEventPacket.UpdateNameOperation(msg));
-                    player.connection.send(p);
-
-                    this.oldPos = player.position();
-                    this.oldRot = player.yHeadRot;
-                }
+            var msg = this.message(player);
+            if (msg != null) {
+                var p = new ClientboundBossEventPacket(bossEvent.getId(), new ClientboundBossEventPacket.UpdateNameOperation(msg));
+                player.connection.send(p);
             }
         }
     }
@@ -217,17 +201,12 @@ public class NavigationBar {
         return message;
     }
 
-    public @NotNull UUID getPlayerUUID() {
-        return playerUUID;
-    }
-
     public @NotNull BlockPos getTargetPos() {
         return targetPos;
     }
 
-    public void trail() {
-        ServerPlayer player = server.getPlayerList().getPlayer(this.playerUUID);
-        if (player != null && player.getRandom().nextBoolean()) {
+    public void sendParticleHint() {
+        if (player.getRandom().nextBoolean()) {
             for (int i = 0; i < 3; i++) {
                 var dir = targetPos.getCenter().subtract(player.position()).normalize().add(player.getRandom().nextFloat()*0.25, player.getRandom().nextFloat()*0.25, player.getRandom().nextFloat()*0.25);
                 var pos = player.position().add(0, player.getEyeHeight()/2, 0).add(dir.scale(2));

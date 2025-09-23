@@ -1,6 +1,6 @@
 package de.tomalbrc.questr.api.quest;
 
-import de.tomalbrc.questr.api.requirement.Requirement;
+import de.tomalbrc.questr.api.task.Task;
 import de.tomalbrc.questr.api.reward.Reward;
 import net.minecraft.resources.ResourceLocation;
 
@@ -11,9 +11,8 @@ public class Quest {
     public ResourceLocation category;
     public String title;
     public String description;
-    public QuestLifecycle lifecycle;
-    public List<Requirement> requirements;
+    public QuestLifecycle lifecycle = new QuestLifecycle(true, true, 0);
+    public QuestRequirement requirements = new QuestRequirement();
+    public List<Task> tasks;
     public List<Reward> rewards;
-    public boolean needsSelection = true;
-    public String permission;
 }

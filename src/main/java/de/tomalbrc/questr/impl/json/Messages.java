@@ -1,6 +1,4 @@
-package de.tomalbrc.questr.impl.util;
-
-import java.util.Locale;
+package de.tomalbrc.questr.impl.json;
 
 public class Messages {
     public String cancelledQuest = "Cancelled quest '%s'";

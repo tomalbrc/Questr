@@ -10,7 +10,7 @@
     {
       "type": "bitmap",
       "file": "questr:font/boxy_bold_font.png",
-      "ascent": 8,
+      "ascent": 3,
       "height": 9,
       "chars": [
         "!\"#$%&'()*+,-./",

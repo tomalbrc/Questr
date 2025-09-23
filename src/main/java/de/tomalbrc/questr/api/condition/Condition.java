@@ -1,8 +1,8 @@
 package de.tomalbrc.questr.api.condition;
 
-import de.tomalbrc.questr.api.context.TypedMap;
+import de.tomalbrc.questr.api.context.ContextMap;
 
 @FunctionalInterface
 public interface Condition {
-    boolean test(TypedMap ctx);
+    boolean test(ContextMap ctx);
 }

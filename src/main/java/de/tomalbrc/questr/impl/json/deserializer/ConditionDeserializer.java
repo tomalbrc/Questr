@@ -1,13 +1,17 @@
-package de.tomalbrc.questr.impl.util;
+package de.tomalbrc.questr.impl.json.deserializer;
 
 import com.google.gson.*;
 import de.tomalbrc.questr.api.condition.Condition;
 import de.tomalbrc.questr.api.condition.Conditions;
 import de.tomalbrc.questr.api.context.DataKey;
 import de.tomalbrc.questr.api.context.Keys;
+import de.tomalbrc.questr.impl.util.SetLike;
+import net.minecraft.core.BlockPos;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public final class ConditionDeserializer implements JsonDeserializer<Condition> {
     @Override
@@ -27,6 +31,10 @@ public final class ConditionDeserializer implements JsonDeserializer<Condition> 
             if (obj.has("none")) {
                 return new Conditions.NoneCondition(deserializeList(obj.getAsJsonArray("none"), ctx));
             }
+            if (obj.has("proximity")) {
+                obj = obj.getAsJsonObject("proximity");
+                return new Conditions.ProximityCondition(ctx.deserialize(obj.get("position"), BlockPos.class), ctx.deserialize(obj.get("distance"), Double.class));
+            }
 
             List<Condition> ents = new ArrayList<>();
             for (var entry : obj.entrySet()) {
@@ -45,28 +53,39 @@ public final class ConditionDeserializer implements JsonDeserializer<Condition> 
                     ents.add(new Conditions.NoneCondition(deserializeList(obj.getAsJsonArray("none"), ctx)));
                     continue;
                 }
+                if (keyName.equalsIgnoreCase("proximity")) {
+                    ents.add(new Conditions.ProximityCondition(ctx.deserialize(val.getAsJsonObject().get("position"), BlockPos.class), ctx.deserialize(val.getAsJsonObject().get("distance"), Double.class)));
+                    continue;
+                }
+
+                DataKey<?> key = Keys.BY_ID.get(keyName);
 
                 if (val.isJsonObject()) {
                     JsonObject candidate = val.getAsJsonObject();
 
                     // value with operator { "value": 5, "operation": "gt" }
                     if (candidate.has("value") && candidate.has("operation")) {
-                        DataKey<?> key = Keys.BY_ID.get(keyName);
                         var valueObj = ctx.deserialize(candidate.get("value"), key.getType());
                         String op = candidate.get("operation").getAsString();
                         ents.add(buildForOperator(key, op, valueObj));
                         continue;
+                    } else {
+                        // nested
+                        ents.add(deserialize(val, Condition.class, ctx));
                     }
 
-                    // nested
-                    ents.add(deserialize(val, Condition.class, ctx));
-                } else if (val.isJsonArray()) {
+                } else if (val.isJsonArray() && key == null) {
                     ents.add(deserialize(val, Condition.class, ctx));
                 } else {
-                    // obj equality: { "entity": "minecraft:zombie" }
-                    DataKey<?> key = Keys.BY_ID.get(keyName);
-                    Object primitive = ctx.deserialize(val, key.getType());
-                    ents.add(new Conditions.EqualsCondition(key, primitive));
+                    if (SetLike.class.isAssignableFrom(key.getType())) {
+                        // edge case for sets
+                        var primitive = ctx.deserialize(val, key.getType());
+                        ents.add(new Conditions.ContainsCondition((DataKey<? extends SetLike<?>>) key, (SetLike<?>) primitive));
+                    } else {
+                        // obj equality: { "entity": "minecraft:zombie" }
+                        Object primitive = ctx.deserialize(val, key.getType());
+                        ents.add(new Conditions.EqualsCondition(key, primitive));
+                    }
                 }
             }
 

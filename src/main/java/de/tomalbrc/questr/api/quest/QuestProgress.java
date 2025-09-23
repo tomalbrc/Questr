@@ -1,7 +1,8 @@
 package de.tomalbrc.questr.api.quest;
 
 import de.tomalbrc.questr.QuestrMod;
-import de.tomalbrc.questr.api.requirement.Requirement;
+import de.tomalbrc.questr.api.task.Task;
+import de.tomalbrc.questr.api.task.TaskEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class QuestProgress {
     private final ResourceLocation quest;
-    private final Map<ResourceLocation, Integer> requirementProgress; // requirementId -> count
+    private final Map<ResourceLocation, Integer> taskProgress; // taskId -> count
     private boolean isCompleted;
     private boolean isCancelled;
 
@@ -19,40 +20,37 @@ public class QuestProgress {
 
     public QuestProgress(ResourceLocation quest) {
         this.quest = quest;
-        this.requirementProgress = new ConcurrentHashMap<>();
-        for (Requirement requirement : quest().requirements) {
-            this.requirementProgress.put(requirement.getId(), 0);
-        }
+        this.taskProgress = new ConcurrentHashMap<>();
         this.isCompleted = false;
         this.cooldownEndsAt = 0;
     }
 
-    public boolean incrementRequirement(ResourceLocation requirementId, QuestEvent event, int amount) {
-        if (isCancelled || isQuestCompleted() || !requirementProgress.containsKey(requirementId)) {
-            return false;
-        }
-
-        requirementProgress.compute(requirementId, (k, current) -> current + amount);
-
+    public boolean incrementTaskProgress(ResourceLocation taskId, TaskEvent event, int amount) {
+        taskProgress.compute(taskId, (k, current) -> (current == null ? 0 : current) + amount);
         return checkAndCompleteQuest(event.player());
+    }
+
+    public int getProgress(Task task) {
+        return taskProgress.getOrDefault(task.getId(), 0);
     }
 
     private boolean checkAndCompleteQuest(ServerPlayer serverPlayer) {
         if (isCompleted || isCancelled) return false;
 
-        for (Requirement req : quest().requirements) {
-            if (requirementProgress.getOrDefault(req.getId(), 0) < req.getTarget()) {
+        var quest = quest();
+        for (Task task : quest.tasks) {
+            if (taskProgress.getOrDefault(task.getId(), 0) < task.getTarget()) {
                 return false;
             }
         }
 
         // requirements are met
         this.isCompleted = true;
-        if (quest().lifecycle.repeatable()) {
-            this.cooldownEndsAt = System.currentTimeMillis() + (quest().lifecycle.cooldownSeconds() * 1000L);
+        if (quest.lifecycle != null && quest.lifecycle.repeatable()) {
+            this.cooldownEndsAt = System.currentTimeMillis() + (quest.lifecycle.cooldownSeconds() * 1000L);
         }
 
-        quest().rewards.forEach(reward -> reward.apply(serverPlayer));
+        quest.rewards.forEach(reward -> reward.apply(serverPlayer));
 
         if (QuestrMod.config.announceQuestCompletion && serverPlayer.getServer() != null) {
             serverPlayer.getServer().sendSystemMessage(Component.literal(String.format(QuestrMod.config.messages.completedQuestAnnouncement, serverPlayer.getScoreboardName(), quest.toString())));
@@ -61,8 +59,13 @@ public class QuestProgress {
         return true;
     }
 
+    public boolean isActive() {
+        return !isQuestCompleted() && !isCancelled();
+    }
+
     public boolean isQuestCompleted() {
-        if (!quest().lifecycle.repeatable()) {
+        var quest = quest();
+        if (quest.lifecycle != null && !quest.lifecycle.repeatable()) {
             return isCompleted;
         }
 
@@ -81,12 +84,12 @@ public class QuestProgress {
     public void reset() {
         this.isCompleted = false;
         this.isCancelled = false;
-        this.requirementProgress.clear();
+        this.taskProgress.clear();
         this.cooldownEndsAt = 0;
     }
 
     public Quest quest() {
-        return new Quest();
+        return Quests.get(quest);
     }
 
     public QuestProgress cancel(ServerPlayer serverPlayer) {

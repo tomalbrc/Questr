@@ -1,4 +1,4 @@
-package de.tomalbrc.questr.impl.util;
+package de.tomalbrc.questr.impl.json;
 
 import com.google.gson.*;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -7,6 +7,9 @@ import com.mojang.serialization.JsonOps;
 import de.tomalbrc.questr.QuestrMod;
 import de.tomalbrc.questr.api.condition.Condition;
 import de.tomalbrc.questr.api.reward.Reward;
+import de.tomalbrc.questr.impl.json.deserializer.ConditionDeserializer;
+import de.tomalbrc.questr.impl.json.deserializer.SimpleCodecDeserializer;
+import de.tomalbrc.questr.impl.util.ResourceSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -41,9 +44,10 @@ public class Json {
             .registerTypeHierarchyAdapter(ResourceLocation.class, new SimpleCodecDeserializer<>(ResourceLocation.CODEC))
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
             .registerTypeHierarchyAdapter(Item.class, new RegistryDeserializer<>(BuiltInRegistries.ITEM))
+            .registerTypeHierarchyAdapter(ResourceSet.class, new ResourceSet.Deserializer())
             .registerTypeAdapter(SoundEvent.class, new RegistryDeserializer<>(BuiltInRegistries.SOUND_EVENT))
             .setPrettyPrinting()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
             .create();
 
     public record RegistryAccessDeserializer<T>(Codec<T> codec) implements JsonDeserializer<T> {

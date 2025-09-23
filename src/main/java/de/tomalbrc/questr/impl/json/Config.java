@@ -1,4 +1,4 @@
-package de.tomalbrc.questr.impl.util;
+package de.tomalbrc.questr.impl.json;
 
 public class Config {
     public boolean announceQuestCompletion = true;

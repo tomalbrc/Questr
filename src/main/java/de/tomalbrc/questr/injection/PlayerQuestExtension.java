@@ -1,14 +1,15 @@
 package de.tomalbrc.questr.injection;
 
 import de.tomalbrc.questr.api.quest.Quest;
-import de.tomalbrc.questr.api.quest.QuestEvent;
+import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.quest.QuestProgress;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Collection;
 
 public interface PlayerQuestExtension {
-    default void startQuest(Quest quest) {
+    default boolean startQuest(Quest quest) {
+        return false;
     }
 
     default boolean hasQuest(Quest quest) {
@@ -23,7 +24,11 @@ public interface PlayerQuestExtension {
         return null;
     }
 
-    default void queueQuestEvent(QuestEvent event) {
+    default Collection<ResourceLocation> getCompletedQuests() {
+        return null;
+    }
+
+    default void queueQuestEvent(TaskEvent event) {
     }
 
     default void tickQuests() {

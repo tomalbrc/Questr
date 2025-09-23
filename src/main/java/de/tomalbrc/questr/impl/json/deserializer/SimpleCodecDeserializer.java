@@ -1,4 +1,4 @@
-package de.tomalbrc.questr.impl.util;
+package de.tomalbrc.questr.impl.json.deserializer;
 
 import com.google.gson.*;
 import com.mojang.serialization.Codec;

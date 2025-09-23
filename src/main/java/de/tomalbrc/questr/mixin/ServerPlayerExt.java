@@ -1,14 +1,14 @@
 package de.tomalbrc.questr.mixin;
 
-import de.tomalbrc.questr.api.requirement.Requirement;
-import de.tomalbrc.questr.api.requirement.RequirementTypes;
 import de.tomalbrc.questr.api.quest.Quest;
-import de.tomalbrc.questr.api.quest.QuestEvent;
+import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.quest.QuestProgress;
+import de.tomalbrc.questr.api.task.Task;
+import de.tomalbrc.questr.api.task.TaskTypes;
+import de.tomalbrc.questr.impl.util.TextUtil;
 import de.tomalbrc.questr.injection.PlayerQuestExtension;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,15 +21,18 @@ import java.util.Map;
 @Mixin(ServerPlayer.class)
 public class ServerPlayerExt implements PlayerQuestExtension {
     Map<ResourceLocation, QuestProgress> quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
-    private static final List<QuestEvent> quest$events = Collections.synchronizedList(new ObjectArrayList<>());
+    private static final List<TaskEvent> quest$events = Collections.synchronizedList(new ObjectArrayList<>());
 
     @Override
-    public void startQuest(Quest quest) {
-        if (!quest$quests.containsKey(quest.id)) {
+    public boolean startQuest(Quest quest) {
+        if (!quest$quests.containsKey(quest.id) && quest.requirements.fulfillsRequirements(ServerPlayer.class.cast(this))) {
             quest$quests.put(quest.id, new QuestProgress(quest.id));
-            ServerPlayer.class.cast(this).sendSystemMessage(Component.literal("Quest started: " + quest.title));
+            ServerPlayer.class.cast(this).sendSystemMessage(TextUtil.format("Quest started: " + quest.title));
+            quest$quests.put(quest.id, new QuestProgress(quest.id));
+            return true;
         }
-        quest$quests.put(quest.id, new QuestProgress(quest.id));
+
+        return false;
     }
 
     @Override
@@ -48,25 +51,32 @@ public class ServerPlayerExt implements PlayerQuestExtension {
     }
 
     @Override
-    public void queueQuestEvent(QuestEvent event) {
+    public Collection<ResourceLocation> getCompletedQuests() {
+        return List.of();
+    }
+
+    @Override
+    public void queueQuestEvent(TaskEvent event) {
         quest$events.add(event);
     }
 
     @Override
     public void tickQuests() {
         for (QuestProgress questProgress : getActiveQuests()) {
-            if (questProgress.isQuestCompleted() || questProgress.isCancelled())
+            if (!questProgress.isActive())
                 continue;
 
-            for (QuestEvent event : quest$events) {
-                var requirementType = RequirementTypes.get(event.requirementType());
-                for (Requirement requirement : questProgress.quest().requirements) {
-                    var sameType = requirement.getType().equals(requirementType.id());
-                    if (sameType && requirementType.meetsConditions(event, requirement)) {
-                        questProgress.incrementRequirement(requirement.getId(), event, 1);
+            for (TaskEvent event : quest$events) {
+                var taskType = TaskTypes.get(event.taskType());
+                for (Task task : questProgress.quest().tasks) {
+                    var sameType = task.getType().equals(taskType.id());
+                    if (sameType && taskType.meetsConditions(event, task)) {
+                        questProgress.incrementTaskProgress(task.getId(), event, 1);
                     }
                 }
             }
         }
+        quest$events.clear();
+        quest$quests.entrySet().removeIf(x -> !x.getValue().isActive());
     }
 }

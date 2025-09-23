@@ -1,19 +1,22 @@
-package de.tomalbrc.questr.api.requirement;
+package de.tomalbrc.questr.api.task;
 
 import de.tomalbrc.questr.api.condition.Condition;
+import de.tomalbrc.questr.api.context.ContextMap;
 import net.minecraft.resources.ResourceLocation;
 
-public final class Requirement {
+public final class Task {
     final ResourceLocation id;
     final ResourceLocation type;
+    final String description;
     final Condition conditions;
-    final int target;
+    int target = 1;
 
-    public Requirement(ResourceLocation id, ResourceLocation type, Condition conditions, int target) {
+    public Task(ResourceLocation id, ResourceLocation type, String description, Condition conditions, int target) {
         this.id = id;
         this.type = type;
+        this.description = description;
         this.conditions = conditions;
-        this.target = target;
+        this.target = Math.max(target, 1);
     }
 
     public ResourceLocation getId() {
@@ -22,6 +25,10 @@ public final class Requirement {
 
     public ResourceLocation getType() {
         return type;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public Condition getConditions() {
@@ -37,7 +44,7 @@ public final class Requirement {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Requirement that = (Requirement) o;
+        Task that = (Task) o;
         return id.equals(that.id);
     }
 
@@ -48,7 +55,7 @@ public final class Requirement {
 
     @Override
     public String toString() {
-        return "Requirement{" +
+        return "Task{" +
                 "id=" + id +
                 ", conditions=" + conditions +
                 ", target=" + target +
