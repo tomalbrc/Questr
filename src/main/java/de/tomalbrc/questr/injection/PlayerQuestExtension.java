@@ -1,8 +1,8 @@
 package de.tomalbrc.questr.injection;
 
 import de.tomalbrc.questr.api.quest.Quest;
-import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.quest.QuestProgress;
+import de.tomalbrc.questr.api.task.TaskEvent;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Collection;
@@ -19,6 +19,8 @@ public interface PlayerQuestExtension {
     default QuestProgress cancelQuest(ResourceLocation id) {
         return null;
     }
+
+    default void addQuestProgress(QuestProgress progress) {}
 
     default Collection<QuestProgress> getActiveQuests() {
         return null;

@@ -1,7 +1,7 @@
 package de.tomalbrc.questr.api.condition;
 
-import de.tomalbrc.questr.api.context.DataKey;
 import de.tomalbrc.questr.api.context.ContextMap;
+import de.tomalbrc.questr.api.context.DataKey;
 import de.tomalbrc.questr.api.context.Keys;
 import de.tomalbrc.questr.impl.util.SetLike;
 import net.minecraft.core.BlockPos;
@@ -22,7 +22,26 @@ public final class Conditions {
     }
 
     public record NumericComparisonCondition(DataKey<Number> key, NumericOp op, double value) implements Condition {
-        public enum NumericOp { GREATER_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN, LESS_THAN_OR_EQUAL, EQUALS, NOT_EQUALS }
+        public enum NumericOp {
+            GREATER_THAN,
+            GREATER_THAN_OR_EQUAL,
+            LESS_THAN,
+            LESS_THAN_OR_EQUAL,
+            EQUALS,
+            NOT_EQUALS;
+
+            NumericOp fromString(String norm) {
+                return switch (norm) {
+                    case "greater_than", "gt", ">" -> Conditions.NumericComparisonCondition.NumericOp.GREATER_THAN;
+                    case "greater_than_or_equal", "gte", ">=" -> Conditions.NumericComparisonCondition.NumericOp.GREATER_THAN_OR_EQUAL;
+                    case "less_than", "lt", "<" -> Conditions.NumericComparisonCondition.NumericOp.LESS_THAN;
+                    case "less_than_or_equal", "lte", "<=" -> Conditions.NumericComparisonCondition.NumericOp.LESS_THAN_OR_EQUAL;
+                    case "equals", "eq", "=" -> Conditions.NumericComparisonCondition.NumericOp.EQUALS;
+                    case "not_equals", "neq", "!=" -> Conditions.NumericComparisonCondition.NumericOp.NOT_EQUALS;
+                    default -> throw new IllegalArgumentException("Unknown operation: " + norm);
+                };
+            }
+        }
 
         @Override
         public boolean test(ContextMap ctx) {

@@ -1,5 +1,9 @@
+
 package de.tomalbrc.questr.api.quest;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import de.tomalbrc.dialogutils.util.TextUtil;
 import de.tomalbrc.questr.QuestrMod;
 import de.tomalbrc.questr.api.task.Task;
 import de.tomalbrc.questr.api.task.TaskEvent;
@@ -16,13 +20,56 @@ public class QuestProgress {
     private boolean isCompleted;
     private boolean isCancelled;
 
-    private long cooldownEndsAt;
+    private long cooldownEndsOn;
+
+    public static final Codec<QuestProgress> CODEC = RecordCodecBuilder.create(instance ->
+            instance.group(
+                    ResourceLocation.CODEC.fieldOf("quest").forGetter(QuestProgress::getQuestId),
+                    Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).fieldOf("task_progress").forGetter(QuestProgress::getTaskProgress),
+                    Codec.BOOL.fieldOf("is_completed").forGetter(QuestProgress::getCompletedFlag),
+                    Codec.BOOL.fieldOf("is_cancelled").forGetter(QuestProgress::getCancelledFlag),
+                    Codec.LONG.fieldOf("cooldown_ends_on").forGetter(QuestProgress::getCooldownEndsOn)
+            ).apply(instance, QuestProgress::new)
+    );
 
     public QuestProgress(ResourceLocation quest) {
         this.quest = quest;
         this.taskProgress = new ConcurrentHashMap<>();
         this.isCompleted = false;
-        this.cooldownEndsAt = 0;
+        this.cooldownEndsOn = 0;
+    }
+
+    public QuestProgress(ResourceLocation quest,
+                         Map<ResourceLocation, Integer> taskProgress,
+                         boolean isCompleted,
+                         boolean isCancelled,
+                         long cooldownEndsOn) {
+        this.quest = quest;
+        this.taskProgress = new ConcurrentHashMap<>();
+        if (taskProgress != null) this.taskProgress.putAll(taskProgress);
+        this.isCompleted = isCompleted;
+        this.isCancelled = isCancelled;
+        this.cooldownEndsOn = cooldownEndsOn;
+    }
+
+    public ResourceLocation getQuestId() {
+        return this.quest;
+    }
+
+    public Map<ResourceLocation, Integer> getTaskProgress() {
+        return this.taskProgress;
+    }
+
+    public boolean getCompletedFlag() {
+        return this.isCompleted;
+    }
+
+    public boolean getCancelledFlag() {
+        return this.isCancelled;
+    }
+
+    public long getCooldownEndsOn() {
+        return this.cooldownEndsOn;
     }
 
     public boolean incrementTaskProgress(ResourceLocation taskId, TaskEvent event, int amount) {
@@ -31,7 +78,11 @@ public class QuestProgress {
     }
 
     public int getProgress(Task task) {
-        return taskProgress.getOrDefault(task.getId(), 0);
+        return taskProgress.getOrDefault(task.id(), 0);
+    }
+
+    public boolean isCompleted(Task task) {
+        return taskProgress.getOrDefault(task.id(), 0) >= task.target();
     }
 
     private boolean checkAndCompleteQuest(ServerPlayer serverPlayer) {
@@ -39,42 +90,33 @@ public class QuestProgress {
 
         var quest = quest();
         for (Task task : quest.tasks) {
-            if (taskProgress.getOrDefault(task.getId(), 0) < task.getTarget()) {
+            if (taskProgress.getOrDefault(task.id(), 0) < task.target()) {
                 return false;
             }
         }
 
-        // requirements are met
-        this.isCompleted = true;
-        if (quest.lifecycle != null && quest.lifecycle.repeatable()) {
-            this.cooldownEndsAt = System.currentTimeMillis() + (quest.lifecycle.cooldownSeconds() * 1000L);
+        // all targets hit / conditions are met
+        if (quest.lifecycle != null) {
+            this.isCompleted = quest.lifecycle.automaticCompletion();
+
+            if (quest.lifecycle.repeatable()) {
+                this.cooldownEndsOn = System.currentTimeMillis() + (quest.lifecycle.cooldownSeconds() * 1000L);
+            }
+        } else {
+            this.isCompleted = true;
         }
 
         quest.rewards.forEach(reward -> reward.apply(serverPlayer));
 
-        if (QuestrMod.config.announceQuestCompletion && serverPlayer.getServer() != null) {
-            serverPlayer.getServer().sendSystemMessage(Component.literal(String.format(QuestrMod.config.messages.completedQuestAnnouncement, serverPlayer.getScoreboardName(), quest.toString())));
-        }
-
-        return true;
-    }
-
-    public boolean isActive() {
-        return !isQuestCompleted() && !isCancelled();
-    }
-
-    public boolean isQuestCompleted() {
-        var quest = quest();
-        if (quest.lifecycle != null && !quest.lifecycle.repeatable()) {
-            return isCompleted;
-        }
-
-        if (isCompleted && System.currentTimeMillis() >= cooldownEndsAt) {
-            reset();
-            return false; // ready to be started again
+        if (isCompleted && QuestrMod.config.announceQuestCompletion && serverPlayer.getServer() != null) {
+            serverPlayer.sendSystemMessage(TextUtil.parse(String.format(QuestrMod.config.messages.completedQuestAnnouncement, serverPlayer.getScoreboardName(), quest.title)));
         }
 
         return isCompleted;
+    }
+
+    public boolean isActive() {
+        return !isCompleted && !isCancelled();
     }
 
     public boolean isCancelled() {
@@ -85,7 +127,7 @@ public class QuestProgress {
         this.isCompleted = false;
         this.isCancelled = false;
         this.taskProgress.clear();
-        this.cooldownEndsAt = 0;
+        this.cooldownEndsOn = 0;
     }
 
     public Quest quest() {

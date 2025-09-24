@@ -12,6 +12,9 @@
   "entrypoints": {
     "main": [
       "de.tomalbrc.questr.QuestrMod"
+    ],
+    "cardinal-components": [
+      "de.tomalbrc.questr.impl.storage.QuestrComponents"
     ]
   },
   "mixins": [
@@ -25,6 +28,9 @@
   "custom": {
     "loom:injected_interfaces": {
       "net/minecraft/class_3222": ["de/tomalbrc/questr/injection/PlayerQuestExtension"]
-    }
+    },
+    "cardinal-components": [
+      "questr:progress"
+    ]
   }
 }

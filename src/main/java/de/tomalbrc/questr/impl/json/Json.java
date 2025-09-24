@@ -6,8 +6,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import de.tomalbrc.questr.QuestrMod;
 import de.tomalbrc.questr.api.condition.Condition;
+import de.tomalbrc.questr.api.context.ContextMap;
 import de.tomalbrc.questr.api.reward.Reward;
 import de.tomalbrc.questr.impl.json.deserializer.ConditionDeserializer;
+import de.tomalbrc.questr.impl.json.deserializer.ContextMapDeserializer;
 import de.tomalbrc.questr.impl.json.deserializer.SimpleCodecDeserializer;
 import de.tomalbrc.questr.impl.util.ResourceSet;
 import net.minecraft.core.BlockPos;
@@ -34,6 +36,7 @@ public class Json {
                     .registerSubtype(Reward.XpReward.class, "xp")
                     .registerSubtype(Reward.ItemReward.class, "item")
                     .registerSubtype(Reward.CommandReward.class, "command"))
+            .registerTypeHierarchyAdapter(ContextMap.class, new ContextMapDeserializer())
             .registerTypeHierarchyAdapter(Condition.class, new ConditionDeserializer())
             .registerTypeHierarchyAdapter(BlockState.class, new RegistryAccessDeserializer<>(BlockState.CODEC))
             .registerTypeHierarchyAdapter(EquipmentSlot.class, new SimpleCodecDeserializer<>(EquipmentSlot.CODEC))

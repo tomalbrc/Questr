@@ -5,104 +5,13 @@
       "advances": {
         " ": 4,
         "\uE200": -1,
-        "\uE201": -10,
         "\uE202": 1
       }
     },
     {
-      "ascent": 6,
-      "chars": [
-        "\uE100"
-      ],
-      "file": "questr:font/ui/background_edge.png",
-      "height": 13,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 6,
-      "chars": [
-        "\uE101"
-      ],
-      "file": "questr:font/ui/background.png",
-      "height": 13,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "←"
-      ],
-      "file": "questr:font/ui/arrow0.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "↖"
-      ],
-      "file": "questr:font/ui/arrow1.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "↑"
-      ],
-      "file": "questr:font/ui/arrow2.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "↗"
-      ],
-      "file": "questr:font/ui/arrow3.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "→"
-      ],
-      "file": "questr:font/ui/arrow4.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "↘"
-      ],
-      "file": "questr:font/ui/arrow5.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "↓"
-      ],
-      "file": "questr:font/ui/arrow6.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
-      "ascent": 7,
-      "chars": [
-        "↙"
-      ],
-      "file": "questr:font/ui/arrow7.png",
-      "height": 16,
-      "type": "bitmap"
-    },
-    {
       "type": "bitmap",
       "file": "dialogutils:font/ascii.png",
-      "ascent": 3,
+      "ascent": -20,
       "height": 8,
       "chars": [
         "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
@@ -126,7 +35,7 @@
     {
       "type": "bitmap",
       "file": "dialogutils:font/nonlatin_european.png",
-      "ascent": 4,
+      "ascent": -20,
       "chars": [
         "\u00a1\u2030\u00ad\u00b7\u20b4\u2260\u00bf\u00d7\u00d8\u00de\u04bb\u00f0\u00f8\u00fe\u0391\u0392",
         "\u0393\u0394\u0395\u0396\u0397\u0398\u0399\u039a\u039b\u039c\u039d\u039e\u039f\u03a0\u03a1\u03a3",

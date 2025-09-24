@@ -9,105 +9,94 @@ import de.tomalbrc.questr.impl.util.SetLike;
 import net.minecraft.core.BlockPos;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.function.BiFunction;
 
 public final class ConditionDeserializer implements JsonDeserializer<Condition> {
+    private static final Map<String, BiFunction<JsonElement, JsonDeserializationContext, Condition>> SPECIALS =
+            new HashMap<>();
+
+    static {
+        SPECIALS.put("all", (json, ctx) ->
+                new Conditions.AllCondition(deserializeList(json.getAsJsonArray(), ctx)));
+        SPECIALS.put("any", (json, ctx) ->
+                new Conditions.AnyCondition(deserializeList(json.getAsJsonArray(), ctx)));
+        SPECIALS.put("none", (json, ctx) ->
+                new Conditions.NoneCondition(deserializeList(json.getAsJsonArray(), ctx)));
+        SPECIALS.put("proximity", (json, ctx) -> {
+            JsonObject obj = json.getAsJsonObject();
+            BlockPos position = ctx.deserialize(obj.get("position"), BlockPos.class);
+            Double distance = obj.has("distance") ? ctx.deserialize(obj.get("distance"), Double.class) : 0.0;
+            return new Conditions.ProximityCondition(position, distance);
+        });
+    }
+
     @Override
     public Condition deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext ctx)
             throws JsonParseException {
-
-        if (json.isJsonObject()) {
-            JsonObject obj = json.getAsJsonObject();
-
-            // combinators
-            if (obj.has("all")) {
-                return new Conditions.AllCondition(deserializeList(obj.getAsJsonArray("all"), ctx));
-            }
-            if (obj.has("any")) {
-                return new Conditions.AnyCondition(deserializeList(obj.getAsJsonArray("any"), ctx));
-            }
-            if (obj.has("none")) {
-                return new Conditions.NoneCondition(deserializeList(obj.getAsJsonArray("none"), ctx));
-            }
-            if (obj.has("proximity")) {
-                obj = obj.getAsJsonObject("proximity");
-                return new Conditions.ProximityCondition(ctx.deserialize(obj.get("position"), BlockPos.class), ctx.deserialize(obj.get("distance"), Double.class));
-            }
-
-            List<Condition> ents = new ArrayList<>();
-            for (var entry : obj.entrySet()) {
-                String keyName = entry.getKey();
-                JsonElement val = entry.getValue();
-
-                if (keyName.equalsIgnoreCase("all")) {
-                    ents.add(new Conditions.AllCondition(deserializeList(obj.getAsJsonArray("all"), ctx)));
-                    continue;
-                }
-                if (keyName.equalsIgnoreCase("any")) {
-                    ents.add(new Conditions.AnyCondition(deserializeList(obj.getAsJsonArray("any"), ctx)));
-                    continue;
-                }
-                if (keyName.equalsIgnoreCase("none")) {
-                    ents.add(new Conditions.NoneCondition(deserializeList(obj.getAsJsonArray("none"), ctx)));
-                    continue;
-                }
-                if (keyName.equalsIgnoreCase("proximity")) {
-                    ents.add(new Conditions.ProximityCondition(ctx.deserialize(val.getAsJsonObject().get("position"), BlockPos.class), ctx.deserialize(val.getAsJsonObject().get("distance"), Double.class)));
-                    continue;
-                }
-
-                DataKey<?> key = Keys.BY_ID.get(keyName);
-
-                if (val.isJsonObject()) {
-                    JsonObject candidate = val.getAsJsonObject();
-
-                    // value with operator { "value": 5, "operation": "gt" }
-                    if (candidate.has("value") && candidate.has("operation")) {
-                        var valueObj = ctx.deserialize(candidate.get("value"), key.getType());
-                        String op = candidate.get("operation").getAsString();
-                        ents.add(buildForOperator(key, op, valueObj));
-                        continue;
-                    } else {
-                        // nested
-                        ents.add(deserialize(val, Condition.class, ctx));
-                    }
-
-                } else if (val.isJsonArray() && key == null) {
-                    ents.add(deserialize(val, Condition.class, ctx));
-                } else {
-                    if (SetLike.class.isAssignableFrom(key.getType())) {
-                        // edge case for sets
-                        var primitive = ctx.deserialize(val, key.getType());
-                        ents.add(new Conditions.ContainsCondition((DataKey<? extends SetLike<?>>) key, (SetLike<?>) primitive));
-                    } else {
-                        // obj equality: { "entity": "minecraft:zombie" }
-                        Object primitive = ctx.deserialize(val, key.getType());
-                        ents.add(new Conditions.EqualsCondition(key, primitive));
-                    }
-                }
-            }
-
-            return new Conditions.AllCondition(ents);
-        }
 
         if (json.isJsonArray()) {
             return new Conditions.AllCondition(deserializeList(json.getAsJsonArray(), ctx));
         }
 
-        throw new JsonParseException("Unsupported condition structure: " + json);
+        if (!json.isJsonObject()) {
+            throw new JsonParseException("Unsupported condition structure: " + json);
+        }
+
+        JsonObject obj = json.getAsJsonObject();
+        List<Condition> ents = new ArrayList<>();
+
+        for (var entry : obj.entrySet()) {
+            String key = entry.getKey();
+            JsonElement val = entry.getValue();
+
+            BiFunction<JsonElement, JsonDeserializationContext, Condition> handler = SPECIALS.get(key.toLowerCase(Locale.ROOT));
+            if (handler != null) {
+                ents.add(handler.apply(val, ctx));
+                continue;
+            }
+
+            // DataKey lookup
+            DataKey<?> dataKey = Keys.BY_ID.get(key);
+            if (dataKey == null) {
+                continue;
+            }
+
+            if (val.isJsonObject()) {
+                JsonObject candidate = val.getAsJsonObject();
+                if (candidate.has("value") && candidate.has("operation")) {
+                    Object valueObj = ctx.deserialize(candidate.get("value"), dataKey.getType());
+                    String op = candidate.get("operation").getAsString();
+                    ents.add(buildForOperator(dataKey, op, valueObj));
+                    continue;
+                }
+                ents.add(deserialize(candidate, Condition.class, ctx));
+            }
+            else if (SetLike.class.isAssignableFrom(dataKey.getType())) {
+                Object setLike = ctx.deserialize(val, dataKey.getType());
+                @SuppressWarnings("unchecked")
+                DataKey<? extends SetLike<?>> dk = (DataKey<? extends SetLike<?>>) dataKey;
+                ents.add(new Conditions.ContainsCondition(dk, (SetLike<?>) setLike));
+            }
+            else {
+                Object primitive = ctx.deserialize(val, dataKey.getType());
+                ents.add(new Conditions.EqualsCondition(dataKey, primitive));
+            }
+        }
+
+        return new Conditions.AllCondition(ents);
     }
 
     private static List<Condition> deserializeList(JsonArray arr, JsonDeserializationContext ctx) {
-        return arr.asList().stream()
-                .map(e -> (Condition)ctx.deserialize(e, Condition.class))
-                .toList();
+        List<Condition> out = new ArrayList<>(arr.size());
+        for (JsonElement e : arr) {
+            out.add((Condition) ctx.deserialize(e, Condition.class));
+        }
+        return out;
     }
 
     private static Condition buildForOperator(DataKey<?> key, String op, Object valueObj) {
         String norm = op.trim().toLowerCase(Locale.ROOT);
-
         if (Number.class.isAssignableFrom(key.getType())) {
             double val = ((Number) valueObj).doubleValue();
             Conditions.NumericComparisonCondition.NumericOp nop = switch (norm) {
@@ -122,8 +111,7 @@ public final class ConditionDeserializer implements JsonDeserializer<Condition> 
             @SuppressWarnings("unchecked")
             DataKey<Number> numKey = (DataKey<Number>) key;
             return new Conditions.NumericComparisonCondition(numKey, nop, val);
-        } else {
-            return new Conditions.EqualsCondition(key, valueObj);
         }
+        return new Conditions.EqualsCondition(key, valueObj);
     }
 }

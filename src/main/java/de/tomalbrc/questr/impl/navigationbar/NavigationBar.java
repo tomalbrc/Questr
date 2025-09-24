@@ -1,8 +1,11 @@
 package de.tomalbrc.questr.impl.navigationbar;
 
-import de.tomalbrc.dialogutils.util.TextAligner;
-import de.tomalbrc.questr.impl.util.TextUtil;
+import de.tomalbrc.dialogutils.util.ComponentAligner;
+import de.tomalbrc.dialogutils.util.TextUtil;
+import de.tomalbrc.questr.QuestrMod;
+import de.tomalbrc.questr.impl.util.SmallCapsConverter;
 import net.fabricmc.loader.impl.util.StringUtil;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -90,31 +93,65 @@ public class NavigationBar {
     }
 
     public MutableComponent space(int s) {
-        return TextUtil.format(String.format("<font:questr:nav>%s</font>", "\uE202".repeat(s))).copy();
+        return TextUtil.parse(String.format("<font:questr:nav>%s</font>", "\uE202".repeat(s))).copy();
     }
 
     public MutableComponent world(String name) {
-        int width = 58;
-        var timeText = TextAligner.alignLine("",
-                String.format("<white><font:questr:nav>%s</font></white>", name),
-                "",
-                width
-        );
-        return background(width).append(TextUtil.format(timeText));
+        String iconStr = "\uE100";
+        if (name.toLowerCase().contains("end")) {
+            iconStr = "\uE101";
+        }
+        else if (name.toLowerCase().contains("nether")) {
+            iconStr = "\uE102";
+        }
+
+        var iconComponent = icon(iconStr);
+        int iconWidth = ComponentAligner.getWidth(iconComponent);
+
+        int width = 65;
+        var text = ComponentAligner.align(TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT, SmallCapsConverter.toSmallCaps(name))), TextUtil.Alignment.CENTER, width - iconWidth - 4);
+        return background(width)
+                .append(ComponentAligner.spacer(2))
+                .append(iconComponent)
+                .append(ComponentAligner.spacer(2))
+                .append(text);
     }
 
-    public MutableComponent clock(long time) {
-        int width = 50;
-        var timeText = TextAligner.alignLine("",
-                String.format("<white><font:questr:nav>%s</font></white>", ticksToClock(time)),
-                "",
-                width
-        );
-        return background(width).append(TextUtil.format(timeText));
+    public static MutableComponent icon(String icon) {
+        return Component.literal(icon).withStyle(Style.EMPTY.withFont(QuestrMod.ICON_FONT_NAV).withColor(ChatFormatting.WHITE));
     }
 
-    public MutableComponent background(int width) {
+    public static MutableComponent clock(long time) {
+        var iconComponent = icon("\uE103");
+        int iconWidth = ComponentAligner.getWidth(iconComponent);
+
+        int width = 60;
+        var timeText = ComponentAligner.align(TextUtil.parse(String.format("<white><font:questr:nav>%s</font></white>", ticksToClock(time))), TextUtil.Alignment.CENTER, width-iconWidth-4);
+        return background(width)
+                .append(ComponentAligner.spacer(2))
+                .append(iconComponent)
+                .append(ComponentAligner.spacer(2))
+                .append(timeText);
+    }
+
+    public static MutableComponent background(int width) {
         return Component.literal(BACKGROUND_EDGE + BACKGROUND.repeat(width-2) + BACKGROUND_EDGE + NEGATIVE_SPACE.repeat(width)).withStyle(NAV_STYLE_BLACK);
+    }
+
+    public static MutableComponent navigation(String arrow, String message) {
+        int width = 120;
+
+        var icon = Component.literal(arrow).withStyle(NAV_STYLE_WHITE);
+        //var iconWidth = ComponentAligner.getWidth(icon); // not usable with mapcanvas-api but #6
+
+        var component = TextUtil.parse(String.format("<white><font:%s>%s</font></white>", NAV_FONT, message));
+        var alignedMessage = ComponentAligner.align(component, TextUtil.Alignment.RIGHT, width-17-4); // 17 for icon + 4 spacer px
+
+        return background(width)
+                .append(ComponentAligner.spacer(2))
+                .append(icon)
+                .append(alignedMessage)
+                .append(ComponentAligner.spacer(2));
     }
 
     public Component message(ServerPlayer player) {
@@ -128,21 +165,21 @@ public class NavigationBar {
             float yRot = player.getYHeadRot() + 180;
             String arrow = getArrow(delta, yRot);
 
-            var icon = Component.literal(arrow).withStyle(NAV_STYLE_WHITE);
             String str;
-            if (distance > 9999)
-                str = String.format("Faw Away", distance);
+            if (distance > 99999)
+                str = "Far Away";
             else
                 str = String.format("%4.0f Blocks Away", distance);
-
-            str = String.format("<white><font:%s> %s </font>", NAV_FONT, str);
-            //int w = TextAligner.getTextWidth(TextAligner.stripTags(str));
-            var message = TextUtil.format(TextAligner.alignSingleLine(str, TextAligner.Align.RIGHT, width-18));
 
             var worldName = player.level().dimension().location().getPath()
                     .replace("the_", "")
                     .replace("_", " ");
-            return background(width).append(space(1)).append(icon).append(message).append(space(1)).append(world(StringUtil.capitalize(worldName))).append(space(1)).append(clock(player.level().dayTime()));
+
+            return navigation(arrow, str)
+                    .append(space(1))
+                    .append(world(StringUtil.capitalize(worldName)))
+                    .append(space(1))
+                    .append(clock(player.level().dayTime()));
         }
 
         return null;

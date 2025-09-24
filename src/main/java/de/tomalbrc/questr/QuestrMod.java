@@ -2,6 +2,7 @@ package de.tomalbrc.questr;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.logging.LogUtils;
+import de.tomalbrc.dialogutils.util.FontUtil;
 import de.tomalbrc.questr.api.quest.Quest;
 import de.tomalbrc.questr.api.quest.QuestCategories;
 import de.tomalbrc.questr.api.quest.QuestCategory;
@@ -11,11 +12,8 @@ import de.tomalbrc.questr.impl.command.NavigationBarCommand;
 import de.tomalbrc.questr.impl.json.Config;
 import de.tomalbrc.questr.impl.json.Loader;
 import de.tomalbrc.questr.impl.navigationbar.NavigationBarManager;
-import de.tomalbrc.questr.impl.task.BreakBlockTaskType;
-import de.tomalbrc.questr.impl.task.KillTaskType;
-import de.tomalbrc.questr.impl.task.SendChatMessageTaskType;
-import de.tomalbrc.questr.impl.task.ShearEntityTaskType;
 import de.tomalbrc.questr.impl.sidebar.SidebarManager;
+import de.tomalbrc.questr.impl.task.*;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -23,6 +21,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -34,7 +33,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class QuestrMod implements ModInitializer {
-    public static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("Questr-Worker-%d").build());
+    public static final String MODID = "questr";
+    public static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("questr-worker-%d").build());
 
     public static final Logger LOGGER = LogUtils.getLogger();
     public static MinecraftServer SERVER;
@@ -42,11 +42,18 @@ public class QuestrMod implements ModInitializer {
     public static SidebarManager SIDEBAR = new SidebarManager();
     public static Config config = new Config();
 
+    public static final ResourceLocation ICON_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons");
+    public static final ResourceLocation ICON_FONT_NAV = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav");
+    public static final ResourceLocation NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "nav");
+    public static final ResourceLocation BOXY_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy");
+    public static final ResourceLocation BOXY_NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav");
+
     private void addBuiltinTypes() {
         TaskTypes.register(new KillTaskType());
         TaskTypes.register(new BreakBlockTaskType());
         TaskTypes.register(new SendChatMessageTaskType());
         TaskTypes.register(new ShearEntityTaskType());
+        TaskTypes.register(new OnTickTaskType());
 
         //RequirementTypes.register(new DefeatCobblemonRequirementType());
     }
@@ -56,6 +63,14 @@ public class QuestrMod implements ModInitializer {
         PolymerResourcePackUtils.addModAssets("questr");
         PolymerResourcePackUtils.markAsRequired();
 
+        PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(x -> {
+            FontUtil.registerDefaultFonts(x);
+            FontUtil.loadFont(x, ICON_FONT);
+            FontUtil.loadFont(x, ICON_FONT_NAV);
+            FontUtil.loadFont(x, NAV_FONT);
+            FontUtil.loadFont(x, BOXY_FONT);
+            FontUtil.loadFont(x, BOXY_NAV_FONT);
+        });
         addBuiltinTypes();
         addEvents();
         addConfigEvents();
