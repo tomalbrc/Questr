@@ -7,10 +7,10 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.ladysnake.cca.api.v3.component.ComponentV3;
 
-public class PlayerQuestComponentImpl implements ComponentV3 {
+public class PlayerQuestProgressComponent implements ComponentV3 {
     private final ServerPlayer player;
 
-    public PlayerQuestComponentImpl(ServerPlayer player) {
+    public PlayerQuestProgressComponent(ServerPlayer player) {
         this.player = player;
     }
 

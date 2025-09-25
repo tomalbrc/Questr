@@ -83,7 +83,7 @@ public class SidebarManager {
                     for (Task task : tasks) {
                         if (task.showProgress()) lines.add(new SimpleSidebarLine(
                                 0,
-                                ComponentAligner.defaultFont(TextUtil.parse(String.format("   <font:%s>%s</font> %s <gray>%d/%d</gray>", QuestrMod.ICON_FONT, (activeQuest.getCompletedFlag() ? "\uE10D" : "\uE10C"), task.description(), activeQuest.getProgress(task), task.target()))),
+                                ComponentAligner.defaultFont(TextUtil.parse(String.format("  <font:%s>%s</font> %s <gray>%d/%d</gray>", QuestrMod.ICON_FONT, (activeQuest.getCompletedFlag() ? "\uE10D" : "\uE10C"), task.description(), activeQuest.getProgress(task), task.target()))),
                                 BlankFormat.INSTANCE
                         ));
                     }

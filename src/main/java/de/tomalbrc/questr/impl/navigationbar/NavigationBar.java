@@ -13,12 +13,15 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundBossEventPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.SegmentedAnglePrecision;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.DaylightDetectorBlock;
+import net.minecraft.world.level.block.entity.BedBlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,9 +32,7 @@ public class NavigationBar {
     private static final String BACKGROUND_EDGE = "\uE100\uE200";
     private static final String BACKGROUND = "\uE101\uE200";
     private static final String NEGATIVE_SPACE = "\uE200";
-    private static final ResourceLocation NAV_FONT = ResourceLocation.fromNamespaceAndPath("questr", "nav");
-    private static final Style NAV_STYLE_WHITE = Style.EMPTY.withFont(NAV_FONT).withShadowColor(0).withColor(0xFFFFFF);
-    private static final Style NAV_STYLE_BLACK = Style.EMPTY.withFont(NAV_FONT).withShadowColor(0).withColor(0);
+    private static final Style NAV_STYLE_BLACK = Style.EMPTY.withFont(QuestrMod.NAV_FONT).withShadowColor(0).withColor(0);
 
     private final MinecraftServer server;
     private final @Nullable String message;
@@ -92,23 +93,34 @@ public class NavigationBar {
         return displayHour + ":" + minuteStr + " " + ampm;
     }
 
-    public MutableComponent space(int s) {
-        return TextUtil.parse(String.format("<font:questr:nav>%s</font>", "\uE202".repeat(s))).copy();
+    public static MutableComponent simpleText(String name, int width) {
+        var text = ComponentAligner.align(TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT, name)), TextUtil.Alignment.CENTER, width-4);
+        return background(width)
+                .append(ComponentAligner.spacer(2))
+                .append(text)
+                .append(ComponentAligner.spacer(2));
     }
 
-    public MutableComponent world(String name) {
+    public static MutableComponent simpleText2(String name, int width) {
+        var text = ComponentAligner.align(TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT2, name)), TextUtil.Alignment.CENTER, width-4);
+        return background2(width)
+                .append(ComponentAligner.spacer(2))
+                .append(text)
+                .append(ComponentAligner.spacer(2));
+    }
+
+    public static MutableComponent world(String name) {
         String iconStr = "\uE100";
         if (name.toLowerCase().contains("end")) {
             iconStr = "\uE101";
-        }
-        else if (name.toLowerCase().contains("nether")) {
+        } else if (name.toLowerCase().contains("nether")) {
             iconStr = "\uE102";
         }
 
         var iconComponent = icon(iconStr);
         int iconWidth = ComponentAligner.getWidth(iconComponent);
 
-        int width = 65;
+        int width = 70;
         var text = ComponentAligner.align(TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT, SmallCapsConverter.toSmallCaps(name))), TextUtil.Alignment.CENTER, width - iconWidth - 4);
         return background(width)
                 .append(ComponentAligner.spacer(2))
@@ -121,12 +133,25 @@ public class NavigationBar {
         return Component.literal(icon).withStyle(Style.EMPTY.withFont(QuestrMod.ICON_FONT_NAV).withColor(ChatFormatting.WHITE));
     }
 
-    public static MutableComponent clock(long time) {
-        var iconComponent = icon("\uE103");
+    private static final String SUN = "\uE104";
+    private static final String RAIN = "\uE105";
+    private static final String THUNDER = "\uE106";
+    private static final String NIGHT = "\uE107";
+    public static MutableComponent clock(long time, ServerLevel level) {
+        String icon = SUN;
+        if (!level.isBrightOutside()) {
+            icon = NIGHT;
+        }
+        if (level.isRaining())
+            icon = RAIN;
+        if (level.isThundering())
+            icon = THUNDER;
+
+        var iconComponent = icon(icon);
         int iconWidth = ComponentAligner.getWidth(iconComponent);
 
         int width = 60;
-        var timeText = ComponentAligner.align(TextUtil.parse(String.format("<white><font:questr:nav>%s</font></white>", ticksToClock(time))), TextUtil.Alignment.CENTER, width-iconWidth-4);
+        var timeText = ComponentAligner.align(TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT, ticksToClock(time))), TextUtil.Alignment.CENTER, width - iconWidth - 4);
         return background(width)
                 .append(ComponentAligner.spacer(2))
                 .append(iconComponent)
@@ -135,17 +160,21 @@ public class NavigationBar {
     }
 
     public static MutableComponent background(int width) {
-        return Component.literal(BACKGROUND_EDGE + BACKGROUND.repeat(width-2) + BACKGROUND_EDGE + NEGATIVE_SPACE.repeat(width)).withStyle(NAV_STYLE_BLACK);
+        return Component.literal(BACKGROUND_EDGE + BACKGROUND.repeat(width - 2) + BACKGROUND_EDGE + NEGATIVE_SPACE.repeat(width)).withStyle(Style.EMPTY.withFont(QuestrMod.NAV_FONT).withShadowColor(0).withColor(0));
+    }
+
+    public static MutableComponent background2(int width) {
+        return Component.literal(BACKGROUND_EDGE + BACKGROUND.repeat(width - 2) + BACKGROUND_EDGE + NEGATIVE_SPACE.repeat(width)).withStyle(Style.EMPTY.withFont(QuestrMod.NAV_FONT2).withShadowColor(0).withColor(0));
     }
 
     public static MutableComponent navigation(String arrow, String message) {
         int width = 120;
 
-        var icon = Component.literal(arrow).withStyle(NAV_STYLE_WHITE);
+        var icon = Component.literal(arrow).withStyle(Style.EMPTY.withFont(QuestrMod.NAV_FONT).withColor(0xFFFFFF));
         //var iconWidth = ComponentAligner.getWidth(icon); // not usable with mapcanvas-api but #6
 
-        var component = TextUtil.parse(String.format("<white><font:%s>%s</font></white>", NAV_FONT, message));
-        var alignedMessage = ComponentAligner.align(component, TextUtil.Alignment.RIGHT, width-17-4); // 17 for icon + 4 spacer px
+        var component = TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT, message));
+        var alignedMessage = ComponentAligner.align(component, TextUtil.Alignment.RIGHT, width - 17 - 4); // 17 for icon + 4 spacer px
 
         return background(width)
                 .append(ComponentAligner.spacer(2))
@@ -154,9 +183,17 @@ public class NavigationBar {
                 .append(ComponentAligner.spacer(2));
     }
 
-    public Component message(ServerPlayer player) {
+    public static MutableComponent navigationSecondLine(String message) {
         int width = 120;
 
+        var component = TextUtil.parse(String.format("<white><font:%s>%s</font></white>", QuestrMod.NAV_FONT2, message));
+        var alignedMessage = ComponentAligner.align(component, TextUtil.Alignment.CENTER, width); // 17 for icon + 4 spacer px
+
+        return background2(width)
+                .append(alignedMessage);
+    }
+
+    public Component message(ServerPlayer player) {
         if (player != null && !player.isRemoved()) {
             Vec3 delta = this.targetPos.getCenter().subtract(player.position());
 
@@ -175,11 +212,19 @@ public class NavigationBar {
                     .replace("the_", "")
                     .replace("_", " ");
 
-            return navigation(arrow, str)
-                    .append(space(1))
+            return simpleText("Server-Name", 80)
+                    .append(ComponentAligner.spacer(1))
+                    .append(navigation(arrow, str))
+                    .append(ComponentAligner.spacer(-120))
+                    .append(navigationSecondLine("Hello, world!"))
+                    .append(ComponentAligner.spacer(1))
                     .append(world(StringUtil.capitalize(worldName)))
-                    .append(space(1))
-                    .append(clock(player.level().dayTime()));
+                    .append(ComponentAligner.spacer(1))
+                    .append(clock(player.level().dayTime(), player.level()))
+                    .append(ComponentAligner.spacer(1))
+                    .append(simpleText(String.format("%.1f TPS", server.tickRateManager().tickrate()), 55))
+                    .append(ComponentAligner.spacer(-55))
+                    .append(simpleText2(String.format("%.1f MSPT", server.tickRateManager().millisecondsPerTick()), 55));
         }
 
         return null;
@@ -245,8 +290,8 @@ public class NavigationBar {
     public void sendParticleHint() {
         if (player.getRandom().nextBoolean()) {
             for (int i = 0; i < 3; i++) {
-                var dir = targetPos.getCenter().subtract(player.position()).normalize().add(player.getRandom().nextFloat()*0.25, player.getRandom().nextFloat()*0.25, player.getRandom().nextFloat()*0.25);
-                var pos = player.position().add(0, player.getEyeHeight()/2, 0).add(dir.scale(2));
+                var dir = targetPos.getCenter().subtract(player.position()).normalize().add(player.getRandom().nextFloat() * 0.25, player.getRandom().nextFloat() * 0.25, player.getRandom().nextFloat() * 0.25);
+                var pos = player.position().add(0, player.getEyeHeight() / 2, 0).add(dir.scale(2));
                 player.connection.send(new ClientboundLevelParticlesPacket(ParticleTypes.SOUL_FIRE_FLAME, false, false, pos.x(), pos.y(), pos.z(), (float) dir.x(), (float) dir.y(), (float) dir.z(), 0.1f, 0));
             }
         }

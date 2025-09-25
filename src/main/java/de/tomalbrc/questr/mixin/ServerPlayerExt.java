@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("all")
 @Mixin(ServerPlayer.class)
 public class ServerPlayerExt implements PlayerQuestExtension {
     @Shadow @Final private MinecraftServer server;
@@ -30,9 +31,9 @@ public class ServerPlayerExt implements PlayerQuestExtension {
 
     @Override
     public boolean startQuest(Quest quest) {
-        if (!quest$quests.containsKey(quest.id) && quest.requirements.fulfillsRequirements(ServerPlayer.class.cast(this))) {
+        if (!quest$quests.containsKey(quest.id) && quest.requirements.fulfillsRequirements((ServerPlayer)(Object) this)) {
             quest$quests.put(quest.id, new QuestProgress(quest.id));
-            ServerPlayer.class.cast(this).sendSystemMessage(TextUtil.parse("Quest started: " + quest.title));
+            ((ServerPlayer)(Object) this).sendSystemMessage(TextUtil.parse("Quest started: " + quest.title));
             quest$quests.put(quest.id, new QuestProgress(quest.id));
             return true;
         }
@@ -47,7 +48,7 @@ public class ServerPlayerExt implements PlayerQuestExtension {
 
     @Override
     public QuestProgress cancelQuest(ResourceLocation id) {
-        return quest$quests.remove(id).cancel(ServerPlayer.class.cast(this));
+        return quest$quests.remove(id).cancel((ServerPlayer)(Object) this);
     }
 
     @Override
@@ -67,8 +68,6 @@ public class ServerPlayerExt implements PlayerQuestExtension {
 
     @Override
     public void tickQuests() {
-        var self = ServerPlayer.class.cast(this);
-
         for (QuestProgress questProgress : getActiveQuests()) {
             if (!questProgress.isActive())
                 continue;
@@ -77,7 +76,7 @@ public class ServerPlayerExt implements PlayerQuestExtension {
             for (Task task : questProgress.quest().tasks) {
                 TaskType taskType = TaskTypes.get(task.type());
                 if (taskType.isPolling()) {
-                    var pollEvent = taskType.poll(ServerPlayer.class.cast(this), task);
+                    var pollEvent = taskType.poll((ServerPlayer)(Object) this, task);
                     if (pollEvent != null) {
                         quest$events.add(pollEvent);
                     }
@@ -88,8 +87,13 @@ public class ServerPlayerExt implements PlayerQuestExtension {
                 var taskType = TaskTypes.get(event.taskType());
                 for (Task task : questProgress.quest().tasks) {
                     var sameType = task.type().equals(taskType.id());
-                    if (sameType && taskType.meetsConditions(event, task)) {
-                        questProgress.incrementTaskProgress(task.id(), event, 1);
+                    if (sameType) {
+                        if (taskType.meetsFailConditions(event, task)) {
+                            questProgress.cancel((ServerPlayer)(Object) this);
+                        }
+                        if (taskType.meetsConditions(event, task)) {
+                            questProgress.incrementTaskProgress(task.id(), event, 1);
+                        }
                     }
                 }
             }

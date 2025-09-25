@@ -9,6 +9,7 @@ import de.tomalbrc.questr.impl.util.ResourceSet;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ public class BreakBlockTaskType implements TaskType {
                     if (blockEntity != null)
                         map.put(Keys.BLOCK_ENTITY_TYPE, blockEntity.getType().builtInRegistryHolder().key().location());
 
-                    map.put(Keys.BLOCK_TAG, ResourceSet.of(blockState.getBlockHolder().tags().map(x -> x.location()).collect(Collectors.toSet())));
+                    map.put(Keys.BLOCK_TAG, ResourceSet.of(blockState.getBlockHolder().tags().map(TagKey::location).collect(Collectors.toSet())));
                     map.put(Keys.BLOCK_STATE, blockState);
                     map.put(Keys.BLOCK, blockState.getBlock());
                     map.put(Keys.POSITION, blockPos);

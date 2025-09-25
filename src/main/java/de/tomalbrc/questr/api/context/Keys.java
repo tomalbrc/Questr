@@ -24,6 +24,7 @@ public class Keys {
     public static final DataKey<ItemStack> ITEM_STACK = DataKey.of("stack", ItemStack.class);
 
     public static final DataKey<Float> DISTANCE = DataKey.of("distance", Float.class);
+    public static final DataKey<Float> DISTANCE_TRACKING = DataKey.of("distance_tracking", Float.class);
 
     public static final DataKey<Block> BLOCK = DataKey.of("block", Block.class);
     public static final DataKey<BlockState> BLOCK_STATE = DataKey.of("state", BlockState.class);
@@ -36,4 +37,9 @@ public class Keys {
     public static final DataKey<ResourceSet> ITEM_TAG = DataKey.of("item_tag", ResourceSet.class);
     public static final DataKey<ResourceSet> BLOCK_TAG = DataKey.of("block_tag", ResourceSet.class);
     public static final DataKey<ResourceSet> ENTITY_TAG = DataKey.of("entity_tag", ResourceSet.class);
+
+    // args
+    public static final DataKey<Boolean> TRACK = DataKey.of("track", Boolean.class);
+    public static final DataKey<BlockPos> TRACK_POSITION = DataKey.of("tracking_position", BlockPos.class);
+    public static final DataKey<Integer> TRACK_RADIUS = DataKey.of("tracking_radius", Integer.class);
 }

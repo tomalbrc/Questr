@@ -9,14 +9,14 @@ import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 
 public class QuestrComponents implements EntityComponentInitializer {
-    public static final ComponentKey<PlayerQuestComponentImpl> QUESTS =
+    public static final ComponentKey<PlayerQuestProgressComponent> QUESTS =
             ComponentRegistry.getOrCreate(
                     ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "progress"),
-                    PlayerQuestComponentImpl.class
+                    PlayerQuestProgressComponent.class
             );
 
     @Override
     public void registerEntityComponentFactories(EntityComponentFactoryRegistry registry) {
-        registry.registerFor(ServerPlayer.class, QUESTS, PlayerQuestComponentImpl::new);
+        registry.registerFor(ServerPlayer.class, QUESTS, PlayerQuestProgressComponent::new);
     }
 }

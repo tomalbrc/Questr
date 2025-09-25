@@ -14,7 +14,11 @@ import de.tomalbrc.questr.impl.json.Loader;
 import de.tomalbrc.questr.impl.navigationbar.NavigationBarManager;
 import de.tomalbrc.questr.impl.sidebar.SidebarManager;
 import de.tomalbrc.questr.impl.task.*;
+import eu.pb4.polymer.resourcepack.api.AssetPaths;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundDefinition;
+import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundEntry;
+import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundsAsset;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -45,6 +49,7 @@ public class QuestrMod implements ModInitializer {
     public static final ResourceLocation ICON_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons");
     public static final ResourceLocation ICON_FONT_NAV = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav");
     public static final ResourceLocation NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "nav");
+    public static final ResourceLocation NAV_FONT2 = ResourceLocation.fromNamespaceAndPath("questr", "nav2");
     public static final ResourceLocation BOXY_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy");
     public static final ResourceLocation BOXY_NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav");
 
@@ -64,10 +69,26 @@ public class QuestrMod implements ModInitializer {
         PolymerResourcePackUtils.markAsRequired();
 
         PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(x -> {
+            var voices = List.of("male", "female");
+            var soundBuilder = SoundsAsset.builder();
+            for (String voice : voices) {
+                for (int i = 0; i < 4; i++) {
+                    for (char c = 'a'; c <= 'z'; c++) {
+                        soundBuilder.add(voice + ".voice_" + i + "." + c, SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + c))));
+                    }
+
+                    soundBuilder.add(voice + ".voice_" + i + ".deska", SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "deska"))));
+                    soundBuilder.add(voice + ".voice_" + i + ".gwah", SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "gwah"))));
+                    soundBuilder.add(voice + ".voice_" + i + ".ok", SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "ok"))));
+                }
+            }
+            x.addData(AssetPaths.soundsAsset(QuestrMod.MODID), soundBuilder.build().toBytes());
+
             FontUtil.registerDefaultFonts(x);
             FontUtil.loadFont(x, ICON_FONT);
             FontUtil.loadFont(x, ICON_FONT_NAV);
             FontUtil.loadFont(x, NAV_FONT);
+            FontUtil.loadFont(x, NAV_FONT2);
             FontUtil.loadFont(x, BOXY_FONT);
             FontUtil.loadFont(x, BOXY_NAV_FONT);
         });
@@ -110,7 +131,7 @@ public class QuestrMod implements ModInitializer {
             SIDEBAR.playerJoined(serverGamePacketListener.player);
         });
 
-        ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener,packetSender) -> {
+        ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, packetSender) -> {
             NAVIGATION.playerLeft(serverGamePacketListener.player, serverGamePacketListener.player.getServer());
             SIDEBAR.playerLeft(serverGamePacketListener.player, serverGamePacketListener.player.getServer());
         });
