@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "questr:font/ui/dialog_background.png",
+      "ascent": 15,
+      "height": 41,
+      "chars": [
+        "\uE100"
+      ]
+    }
+  ]
+}

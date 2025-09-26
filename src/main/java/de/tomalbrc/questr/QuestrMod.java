@@ -8,6 +8,7 @@ import de.tomalbrc.questr.api.quest.QuestCategories;
 import de.tomalbrc.questr.api.quest.QuestCategory;
 import de.tomalbrc.questr.api.quest.Quests;
 import de.tomalbrc.questr.api.task.TaskTypes;
+import de.tomalbrc.questr.impl.DialogManager;
 import de.tomalbrc.questr.impl.command.NavigationBarCommand;
 import de.tomalbrc.questr.impl.json.Config;
 import de.tomalbrc.questr.impl.json.Loader;
@@ -44,6 +45,7 @@ public class QuestrMod implements ModInitializer {
     public static MinecraftServer SERVER;
     public static NavigationBarManager NAVIGATION = new NavigationBarManager();
     public static SidebarManager SIDEBAR = new SidebarManager();
+    public static DialogManager DIALOG = new DialogManager();
     public static Config config = new Config();
 
     public static final ResourceLocation ICON_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons");
@@ -52,6 +54,13 @@ public class QuestrMod implements ModInitializer {
     public static final ResourceLocation NAV_FONT2 = ResourceLocation.fromNamespaceAndPath("questr", "nav2");
     public static final ResourceLocation BOXY_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy");
     public static final ResourceLocation BOXY_NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav");
+    public static final ResourceLocation DIALOG_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "dialog");
+    public static final ResourceLocation LINE1_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line1");
+    public static final ResourceLocation LINE2_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line2");
+    public static final ResourceLocation LINE3_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line3");
+    public static final ResourceLocation LINE4_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4");
+    public static final ResourceLocation LINE5_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line5");
+    public static final List<ResourceLocation> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT);
 
     private void addBuiltinTypes() {
         TaskTypes.register(new KillTaskType());
@@ -72,7 +81,7 @@ public class QuestrMod implements ModInitializer {
             var voices = List.of("male", "female");
             var soundBuilder = SoundsAsset.builder();
             for (String voice : voices) {
-                for (int i = 0; i < 4; i++) {
+                for (int i = 1; i < 5; i++) {
                     for (char c = 'a'; c <= 'z'; c++) {
                         soundBuilder.add(voice + ".voice_" + i + "." + c, SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + c))));
                     }
@@ -91,6 +100,10 @@ public class QuestrMod implements ModInitializer {
             FontUtil.loadFont(x, NAV_FONT2);
             FontUtil.loadFont(x, BOXY_FONT);
             FontUtil.loadFont(x, BOXY_NAV_FONT);
+            FontUtil.loadFont(x, DIALOG_FONT);
+            for (ResourceLocation font : LINE_FONTS) {
+                FontUtil.loadFont(x, font);
+            }
         });
         addBuiltinTypes();
         addEvents();
@@ -134,6 +147,7 @@ public class QuestrMod implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, packetSender) -> {
             NAVIGATION.playerLeft(serverGamePacketListener.player, serverGamePacketListener.player.getServer());
             SIDEBAR.playerLeft(serverGamePacketListener.player, serverGamePacketListener.player.getServer());
+            DIALOG.playerLeft(serverGamePacketListener.player);
         });
 
         ServerTickEvents.END_SERVER_TICK.register((server) -> {
@@ -142,10 +156,12 @@ public class QuestrMod implements ModInitializer {
                 try {
                     list.forEach(ServerPlayer::tickQuests);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    QuestrMod.LOGGER.error("Error ticking player quests: ", e);
                 }
+
                 NAVIGATION.tick(server);
                 SIDEBAR.tick(server);
+                DIALOG.tick(server);
             });
         });
     }
