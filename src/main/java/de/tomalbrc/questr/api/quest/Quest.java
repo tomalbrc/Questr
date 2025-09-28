@@ -12,7 +12,7 @@ public class Quest {
     public String title;
     public String description;
     public QuestLifecycle lifecycle = new QuestLifecycle(true, true, true, 0);
-    public QuestRequirement requirements = new QuestRequirement();
+    public QuestRequirement requirements = new QuestRequirement(null, null);
     public List<Task> tasks;
     public List<Reward> rewards;
 }

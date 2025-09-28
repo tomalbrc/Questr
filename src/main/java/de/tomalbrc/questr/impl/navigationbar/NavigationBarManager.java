@@ -3,14 +3,15 @@ package de.tomalbrc.questr.impl.navigationbar;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NavigationBarManager {
-    private final Map<ServerPlayer, NavigationBar> playerNavigationBars = new ConcurrentHashMap<>();
+    private final Map<ServerGamePacketListenerImpl, NavigationBar> playerNavigationBars = new ConcurrentHashMap<>();
 
-    public void add(ServerPlayer player, String message, BlockPos targetPos) {
+    public void add(ServerGamePacketListenerImpl player, String message, BlockPos targetPos) {
         NavigationBar newData = new NavigationBar(player, message, targetPos);
         newData.setVisible(true);
         newData.setActive(true);
@@ -25,20 +26,20 @@ public class NavigationBarManager {
         bar.setVisible(vis);
     }
 
-    public void remove(ServerPlayer player) {
+    public void remove(ServerGamePacketListenerImpl player) {
         var removed = playerNavigationBars.remove(player);
         if (removed != null)
             removed.setActive(false);
     }
 
-    public void playerJoined(ServerPlayer player, MinecraftServer server) {
+    public void playerJoined(ServerGamePacketListenerImpl player, MinecraftServer server) {
         try {
             this.add(player, "", BlockPos.ZERO);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public void playerLeft(ServerPlayer player, MinecraftServer server) {
+    public void playerLeft(ServerGamePacketListenerImpl player, MinecraftServer server) {
         remove(player);
     }
 

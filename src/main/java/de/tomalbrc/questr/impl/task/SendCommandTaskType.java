@@ -8,22 +8,21 @@ import de.tomalbrc.questr.api.task.TaskType;
 import net.minecraft.resources.ResourceLocation;
 import xyz.nucleoid.stimuli.Stimuli;
 import xyz.nucleoid.stimuli.event.EventResult;
-import xyz.nucleoid.stimuli.event.player.PlayerChatEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerCommandEvent;
 
-public class SendChatMessageTaskType implements TaskType {
-    public SendChatMessageTaskType() {}
+public class SendCommandTaskType implements TaskType {
+    public SendCommandTaskType() {}
 
     @Override
     public ResourceLocation id() {
-        return ResourceLocation.withDefaultNamespace("send_chat_message");
+        return ResourceLocation.withDefaultNamespace("send_command");
     }
 
     @Override
     public void registerEventListener() {
-        Stimuli.global().listen(PlayerChatEvent.EVENT, (serverPlayer, message, bound) -> {
+        Stimuli.global().listen(PlayerCommandEvent.EVENT, (serverPlayer, msg) -> {
             QuestrMod.EXECUTOR.execute(() -> {
                 var map = ContextMap.of(serverPlayer);
-                var msg = message.signedContent();
                 map.put(Keys.MESSAGE, msg);
                 map.put(Keys.MESSAGE_LENGTH, msg.length());
                 serverPlayer.connection.queueQuestEvent(new TaskEvent(serverPlayer, id(), map));

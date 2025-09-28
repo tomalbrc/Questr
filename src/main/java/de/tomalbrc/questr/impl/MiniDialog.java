@@ -1,5 +1,6 @@
 package de.tomalbrc.questr.impl;
 
+import de.tomalbrc.avatarrenderer.AvatarRendererMod;
 import de.tomalbrc.dialogutils.util.ComponentAligner;
 import de.tomalbrc.dialogutils.util.TextUtil;
 import de.tomalbrc.questr.QuestrMod;
@@ -31,8 +32,6 @@ public class MiniDialog {
     private final String voice;
     private final Runnable onFinish;
 
-    private final Component postDialogSuffix = Component.literal("Next").withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withFont(QuestrMod.LINE5_FONT).withShadowColor(0xFF_00_00_00));
-
     public MiniDialog(ServerPlayer player,
                       List<Component> lines,
                       int maxWidth,
@@ -63,6 +62,30 @@ public class MiniDialog {
         this.onFinish = onFinish;
     }
 
+    private Component getJigglingSuffix(long gameTime) {
+        String content = "      Next";
+        int firstCharIndex = 0;
+
+        int jiggleIndexInVisible = (int) ((gameTime / 2) % content.length());
+        int jiggleIndexInFull = firstCharIndex + jiggleIndexInVisible;
+
+        Style normalStyle = Style.EMPTY.withColor(ChatFormatting.GOLD).withFont(QuestrMod.LINE4_FONT).withShadowColor(0xFF_00_00_00);
+        Style jiggleStyle = Style.EMPTY.withColor(ChatFormatting.GOLD).withFont(QuestrMod.LINE4_JIGGLE_FONT).withShadowColor(0xFF_00_00_00);
+
+        MutableComponent result = Component.empty();
+
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (i == jiggleIndexInFull) {
+                result.append(Component.literal(String.valueOf(c)).withStyle(jiggleStyle));
+            } else {
+                result.append(Component.literal(String.valueOf(c)).withStyle(normalStyle));
+            }
+        }
+
+        return result;
+    }
+
     public void tick(MinecraftServer server) {
         if (closed.get()) {
             return;
@@ -81,6 +104,15 @@ public class MiniDialog {
         text = ComponentAligner.align(text, TextUtil.Alignment.CENTER, maxWidth).withStyle(Style.EMPTY.withFont(QuestrMod.DIALOG_FONT).withColor(ChatFormatting.WHITE).withShadowColor(0));
         text.append(carriageReturn);
 
+        var avatar = AvatarRendererMod.computeNow(player.getScoreboardName(), 23, true);
+        if (avatar != null) {
+            int shift = 17;
+            text.append(ComponentAligner.spacer(-shift));
+            text.append(avatar);
+            text.append(ComponentAligner.spacer(-ComponentAligner.getWidth(avatar)));
+            text.append(ComponentAligner.spacer(shift));
+        }
+
         int shiftBy = 25;
         text.append(ComponentAligner.spacer(shiftBy));
 
@@ -88,38 +120,29 @@ public class MiniDialog {
             Component lineComponent = lines.get(i);
             int lineLength = lengths.get(i);
 
-            // Check if the typing cursor is past this entire line
             if (globalCharIndex >= charsInPreviousLines + lineLength) {
-                // This line is fully displayed. Append it directly.
                 MutableComponent fullLine = lineComponent.copy();
-                // Apply the overall line font and color, preserving existing styles where possible
                 fullLine.setStyle(fullLine.getStyle().withFont(QuestrMod.LINE_FONTS.get(i)).withColor(ChatFormatting.BLACK));
                 text.append(ComponentAligner.align(fullLine, TextUtil.Alignment.LEFT, maxWidth));
             } else {
-                // The typing cursor is somewhere within this line. We need to build it part-by-part.
                 MutableComponent currentLineText = Component.empty();
                 int charsWithinLineSoFar = 0;
 
-                // Iterate through the styled parts of the line
                 for (Component part : lineComponent.toFlatList()) {
                     String partText = part.getString();
                     int partLength = partText.length();
 
-                    // Check if the typing cursor is completely past this part
                     if (globalCharIndex >= charsInPreviousLines + charsWithinLineSoFar + partLength) {
                         currentLineText.append(part);
                         charsWithinLineSoFar += partLength;
                     } else {
-                        // The cursor is inside this part. Find the exact character.
                         int charIndexInPart = globalCharIndex - (charsInPreviousLines + charsWithinLineSoFar);
                         String visiblePartText = partText.substring(0, charIndexInPart);
 
-                        // Append the visible portion of this part, preserving its original style
                         if (!visiblePartText.isEmpty()) {
                             currentLineText.append(Component.literal(visiblePartText).withStyle(part.getStyle()));
                         }
 
-                        // Play the sound for the character being "typed"
                         if (globalCharIndex < totalChars) {
                             char characterToPlay = partText.charAt(charIndexInPart);
                             Animalese.playLetter(
@@ -131,17 +154,14 @@ public class MiniDialog {
                                     voice
                             );
                         }
-                        // We've found the typing point, so we can stop processing more parts for this line
                         break;
                     }
                 }
 
-                // Apply the overall line font and color to the constructed line
                 currentLineText.setStyle(currentLineText.getStyle().withFont(QuestrMod.LINE_FONTS.get(i)).withColor(ChatFormatting.BLACK));
 
                 text.append(ComponentAligner.align(currentLineText, TextUtil.Alignment.LEFT, maxWidth));
 
-                // Increment progress and break from the main loop over all lines
                 progress.incrementAndGet();
                 break;
             }
@@ -155,9 +175,10 @@ public class MiniDialog {
 
         text.append(ComponentAligner.spacer(-shiftBy));
 
-        // if dialog is fully written, append suffix and shift back to preserve alignment
+        // if dialog is fully written append suffix and shift back to preserve alignment
         if (progress.get() >= totalChars) {
-            text.append(postDialogSuffix).append(ComponentAligner.spacer(-ComponentAligner.getWidth(postDialogSuffix)));
+            var jiggly = getJigglingSuffix(player.level().getGameTime());
+            text.append(jiggly).append(ComponentAligner.spacer(-ComponentAligner.getWidth(jiggly)));
         }
 
         if (!player.isRemoved()) {

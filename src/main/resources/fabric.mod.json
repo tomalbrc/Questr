@@ -27,7 +27,7 @@
   },
   "custom": {
     "loom:injected_interfaces": {
-      "net/minecraft/class_3222": ["de/tomalbrc/questr/injection/PlayerQuestExtension"]
+      "net/minecraft/class_3244": ["de/tomalbrc/questr/injection/PlayerQuestExtension"]
     },
     "cardinal-components": [
       "questr:progress"

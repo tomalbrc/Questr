@@ -7,13 +7,13 @@ import de.tomalbrc.questr.api.task.Task;
 import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.task.TaskType;
 import de.tomalbrc.questr.api.task.TaskTypes;
+import de.tomalbrc.questr.impl.storage.ProgressList;
 import de.tomalbrc.questr.injection.PlayerQuestExtension;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -22,38 +22,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("all")
-@Mixin(ServerPlayer.class)
+@Mixin(ServerGamePacketListenerImpl.class)
 public class ServerPlayerExt implements PlayerQuestExtension {
-    @Shadow @Final private MinecraftServer server;
-    Map<ResourceLocation, QuestProgress> quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
-    private static final List<TaskEvent> quest$events = Collections.synchronizedList(new ObjectArrayList<>());
+    @Shadow public ServerPlayer player;
+
+    private final Map<ResourceLocation, QuestProgress> quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
+    private final List<TaskEvent> quest$events = Collections.synchronizedList(new ObjectArrayList<>());
 
     @Override
     public boolean startQuest(Quest quest) {
-        if (!quest$quests.containsKey(quest.id) && quest.requirements.fulfillsRequirements((ServerPlayer)(Object) this)) {
+        if (!quest$quests.containsKey(quest.id) && quest.requirements.fulfillsRequirements(player.connection)) {
             quest$quests.put(quest.id, new QuestProgress(quest.id));
-            ((ServerPlayer)(Object) this).sendSystemMessage(TextUtil.parse("Quest started: " + quest.title));
+            player.sendSystemMessage(TextUtil.parse("Quest started: " + quest.title));
             quest$quests.put(quest.id, new QuestProgress(quest.id));
             return true;
         }
 
         return false;
-    }
-
-    @Override
-    public boolean hasQuest(Quest quest) {
-        return quest$quests.containsValue(quest);
-    }
-
-    @Override
-    public QuestProgress cancelQuest(ResourceLocation id) {
-        return quest$quests.remove(id).cancel((ServerPlayer)(Object) this);
-    }
-
-    @Override
-    public Collection<QuestProgress> getActiveQuests() {
-        return quest$quests.values();
     }
 
     @Override
@@ -68,7 +53,7 @@ public class ServerPlayerExt implements PlayerQuestExtension {
 
     @Override
     public void tickQuests() {
-        for (QuestProgress questProgress : getActiveQuests()) {
+        for (QuestProgress questProgress : ProgressList.getProgress(player.getUUID())) {
             if (!questProgress.isActive())
                 continue;
 
@@ -76,7 +61,7 @@ public class ServerPlayerExt implements PlayerQuestExtension {
             for (Task task : questProgress.quest().tasks) {
                 TaskType taskType = TaskTypes.get(task.type());
                 if (taskType.isPolling()) {
-                    var pollEvent = taskType.poll((ServerPlayer)(Object) this, task);
+                    var pollEvent = taskType.poll((ServerGamePacketListenerImpl)(Object) this, task);
                     if (pollEvent != null) {
                         quest$events.add(pollEvent);
                     }
@@ -87,23 +72,25 @@ public class ServerPlayerExt implements PlayerQuestExtension {
                 var taskType = TaskTypes.get(event.taskType());
                 for (Task task : questProgress.quest().tasks) {
                     var sameType = task.type().equals(taskType.id());
-                    if (sameType) {
+                    if (sameType && questProgress.isActive()) {
                         if (taskType.meetsFailConditions(event, task)) {
-                            questProgress.cancel((ServerPlayer)(Object) this);
+                            questProgress.cancel((ServerGamePacketListenerImpl)(Object) this);
                         }
-                        if (taskType.meetsConditions(event, task)) {
-                            questProgress.incrementTaskProgress(task.id(), event, 1);
+                        else if (questProgress.isActive() && taskType.meetsConditions(event, task)) {
+                             questProgress.incrementTaskProgress(task.id(), event, 1);
+
+                             if (questProgress.isCompleted()) {
+                                 questProgress.quest().rewards.forEach(reward -> reward.apply(player));
+                             }
                         }
+
+
                     }
                 }
             }
         }
+
         quest$events.clear();
         quest$quests.entrySet().removeIf(x -> !x.getValue().isActive());
-    }
-
-    @Override
-    public void addQuestProgress(QuestProgress progress) {
-        quest$quests.put(progress.getQuestId(), progress);
     }
 }

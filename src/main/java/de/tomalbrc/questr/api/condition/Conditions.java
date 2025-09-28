@@ -2,12 +2,11 @@ package de.tomalbrc.questr.api.condition;
 
 import de.tomalbrc.questr.api.context.ContextMap;
 import de.tomalbrc.questr.api.context.DataKey;
-import de.tomalbrc.questr.api.context.Keys;
 import de.tomalbrc.questr.impl.util.SetLike;
-import net.minecraft.core.BlockPos;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public final class Conditions {
     public record EqualsCondition(DataKey<?> key, Object expected) implements Condition {
@@ -30,7 +29,7 @@ public final class Conditions {
             EQUALS,
             NOT_EQUALS;
 
-            NumericOp fromString(String norm) {
+            public static NumericOp fromString(String norm) {
                 return switch (norm) {
                     case "greater_than", "gt", ">" -> Conditions.NumericComparisonCondition.NumericOp.GREATER_THAN;
                     case "greater_than_or_equal", "gte", ">=" -> Conditions.NumericComparisonCondition.NumericOp.GREATER_THAN_OR_EQUAL;
@@ -105,15 +104,42 @@ public final class Conditions {
         }
     }
 
-    public record ProximityCondition(BlockPos position, double distance) implements Condition {
+    public record StringComparisonCondition(DataKey<String> key, StringOp op, String value) implements Condition {
+        public enum StringOp {
+            STARTS_WITH,
+            ENDS_WITH,
+            CONTAINS,
+            EQUALS,
+            NOT_EQUALS,
+            MATCHES; // regex match
+
+            public static StringOp fromString(String norm) {
+                return switch (norm) {
+                    case "starts_with", "startswith", "sw", "^" -> STARTS_WITH;
+                    case "ends_with", "endswith", "ew", "$" -> ENDS_WITH;
+                    case "contains", "in", "has", "like" -> CONTAINS;
+                    case "equals", "eq", "=", "==" -> EQUALS;
+                    case "not_equals", "neq", "!=" -> NOT_EQUALS;
+                    case "matches", "match", "regex", "rx" -> MATCHES;
+                    default -> throw new IllegalArgumentException("Unknown string operation: " + norm);
+                };
+            }
+        }
+
         @Override
         public boolean test(ContextMap ctx) {
-            BlockPos playerPosition = ctx.get(Keys.PLAYER_POSITION);
-            if (playerPosition == null) {
-                return true;
-            }
+            String runtime = ctx.get(key);
+            if (runtime == null) return true;
+            if (value == null) return true;
 
-            return playerPosition.distSqr(position) <= distance * distance;
+            return switch (op) {
+                case STARTS_WITH -> runtime.startsWith(value);
+                case ENDS_WITH -> runtime.endsWith(value);
+                case CONTAINS -> runtime.contains(value);
+                case EQUALS -> Objects.equals(runtime, value);
+                case NOT_EQUALS -> !Objects.equals(runtime, value);
+                case MATCHES -> Pattern.matches(value, runtime);
+            };
         }
     }
 }

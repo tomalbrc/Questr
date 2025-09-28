@@ -1,11 +1,8 @@
 package de.tomalbrc.questr.api.task;
 
 import de.tomalbrc.questr.api.context.ContextMap;
-import de.tomalbrc.questr.api.context.DataKey;
-import de.tomalbrc.questr.api.context.Keys;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.Nullable;
 
 public interface TaskType {
@@ -29,7 +26,7 @@ public interface TaskType {
         return false;
     }
 
-    default @Nullable TaskEvent poll(ServerPlayer serverPlayer, Task task) {
+    default @Nullable TaskEvent poll(ServerGamePacketListenerImpl serverPlayer, Task task) {
         return null;
     }
 }

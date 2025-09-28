@@ -40,6 +40,7 @@ dependencies {
     modImplementation include("xyz.nucleoid:stimuli:${project.stimuli_version}")
 
     modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
+    modImplementation include("de.tomalbrc:avatar-renderer:${project.avatarrenderer_version}")
 
     implementation include("org.danilopianini:gson-extras:3.3.0")
 

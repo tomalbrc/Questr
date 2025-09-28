@@ -57,7 +57,7 @@ public class NavigationBarCommand {
             var genders = List.of("male", "female");
             var voices = List.of("voice_1", "voice_2", "voice_3", "voice_4");
 
-            QuestrMod.DIALOG.add(player, new MiniDialog(player, lines.stream().map(TextUtil::parse).toList(), maxWidth, genders.get(player.getRandom().nextInt(genders.size())), voices.get(player.getRandom().nextInt(voices.size())), ()->{}));
+            QuestrMod.DIALOG.add(player.connection, new MiniDialog(player, lines.stream().map(TextUtil::parse).toList(), maxWidth, genders.get(player.getRandom().nextInt(genders.size())), voices.get(player.getRandom().nextInt(voices.size())), ()->{}));
 
             return Command.SINGLE_SUCCESS;
         }

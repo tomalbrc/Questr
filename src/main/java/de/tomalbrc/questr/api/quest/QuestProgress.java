@@ -10,6 +10,7 @@ import de.tomalbrc.questr.api.task.TaskEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,10 +25,10 @@ public class QuestProgress {
 
     public static final Codec<QuestProgress> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    ResourceLocation.CODEC.fieldOf("quest").forGetter(QuestProgress::getQuestId),
+                    ResourceLocation.CODEC.fieldOf("quest").forGetter(QuestProgress::questId),
                     Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).fieldOf("task_progress").forGetter(QuestProgress::getTaskProgress),
-                    Codec.BOOL.fieldOf("is_completed").forGetter(QuestProgress::getCompletedFlag),
-                    Codec.BOOL.fieldOf("is_cancelled").forGetter(QuestProgress::getCancelledFlag),
+                    Codec.BOOL.fieldOf("is_completed").forGetter(QuestProgress::isCompleted),
+                    Codec.BOOL.fieldOf("is_cancelled").forGetter(QuestProgress::isCancelled),
                     Codec.LONG.fieldOf("cooldown_ends_on").forGetter(QuestProgress::getCooldownEndsOn)
             ).apply(instance, QuestProgress::new)
     );
@@ -52,7 +53,7 @@ public class QuestProgress {
         this.cooldownEndsOn = cooldownEndsOn;
     }
 
-    public ResourceLocation getQuestId() {
+    public ResourceLocation questId() {
         return this.quest;
     }
 
@@ -60,12 +61,8 @@ public class QuestProgress {
         return this.taskProgress;
     }
 
-    public boolean getCompletedFlag() {
+    public boolean isCompleted() {
         return this.isCompleted;
-    }
-
-    public boolean getCancelledFlag() {
-        return this.isCancelled;
     }
 
     public long getCooldownEndsOn() {
@@ -88,7 +85,7 @@ public class QuestProgress {
     private boolean checkAndCompleteQuest(ServerPlayer serverPlayer) {
         if (isCompleted || isCancelled) return false;
 
-        var quest = quest();
+        Quest quest = quest();
         for (Task task : quest.tasks) {
             if (taskProgress.getOrDefault(task.id(), 0) < task.target()) {
                 return false;
@@ -105,8 +102,6 @@ public class QuestProgress {
         } else {
             this.isCompleted = true;
         }
-
-        quest.rewards.forEach(reward -> reward.apply(serverPlayer));
 
         if (isCompleted && QuestrMod.config.announceQuestCompletion && serverPlayer.getServer() != null) {
             serverPlayer.sendSystemMessage(TextUtil.parse(String.format(QuestrMod.config.messages.completedQuestAnnouncement, serverPlayer.getScoreboardName(), quest.title)));
@@ -134,8 +129,8 @@ public class QuestProgress {
         return Quests.get(quest);
     }
 
-    public QuestProgress cancel(ServerPlayer serverPlayer) {
-        serverPlayer.sendSystemMessage(Component.literal(String.format(QuestrMod.config.messages.cancelledQuest, quest.toString())));
+    public QuestProgress cancel(ServerGamePacketListenerImpl serverPlayer) {
+        serverPlayer.player.sendSystemMessage(Component.literal(String.format(QuestrMod.config.messages.cancelledQuest, quest.toString())));
         this.isCancelled = false;
 
         return this;

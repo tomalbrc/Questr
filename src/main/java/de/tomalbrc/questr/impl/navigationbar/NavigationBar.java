@@ -17,6 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.SegmentedAnglePrecision;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.level.block.BedBlock;
@@ -36,7 +37,7 @@ public class NavigationBar {
 
     private final MinecraftServer server;
     private final @Nullable String message;
-    private final @NotNull ServerPlayer player;
+    private final @NotNull ServerGamePacketListenerImpl player;
 
     private final @NotNull BlockPos targetPos;
     private final @NotNull BossEvent bossEvent;
@@ -44,10 +45,10 @@ public class NavigationBar {
     private boolean active;
     private boolean visible;
 
-    public NavigationBar(@NotNull ServerPlayer player, @Nullable String message, @NotNull BlockPos targetPos) {
+    public NavigationBar(@NotNull ServerGamePacketListenerImpl player, @Nullable String message, @NotNull BlockPos targetPos) {
         this.message = message;
         this.player = player;
-        this.server = player.getServer();
+        this.server = player.getPlayer().getServer();
         this.targetPos = targetPos;
         this.active = true;
         this.visible = true;
@@ -64,9 +65,9 @@ public class NavigationBar {
         this.active = active;
 
         if (active) {
-            this.player.connection.send(ClientboundBossEventPacket.createAddPacket(this.bossEvent));
+            this.player.send(ClientboundBossEventPacket.createAddPacket(this.bossEvent));
         } else {
-            this.player.connection.send(ClientboundBossEventPacket.createRemovePacket(this.bossEvent.getId()));
+            this.player.send(ClientboundBossEventPacket.createRemovePacket(this.bossEvent.getId()));
         }
     }
 
@@ -250,7 +251,7 @@ public class NavigationBar {
     }
 
     public void update() {
-        if (player.isRemoved()) {
+        if (player.player.isRemoved()) {
             return;
         }
 
@@ -263,10 +264,10 @@ public class NavigationBar {
         }
 
         if (active) {
-            var msg = this.message(player);
+            var msg = this.message(player.player);
             if (msg != null) {
                 var p = new ClientboundBossEventPacket(bossEvent.getId(), new ClientboundBossEventPacket.UpdateNameOperation(msg));
-                player.connection.send(p);
+                player.player.connection.send(p);
             }
         }
     }
@@ -288,11 +289,11 @@ public class NavigationBar {
     }
 
     public void sendParticleHint() {
-        if (player.getRandom().nextBoolean()) {
+        if (player.player.getRandom().nextBoolean()) {
             for (int i = 0; i < 3; i++) {
-                var dir = targetPos.getCenter().subtract(player.position()).normalize().add(player.getRandom().nextFloat() * 0.25, player.getRandom().nextFloat() * 0.25, player.getRandom().nextFloat() * 0.25);
-                var pos = player.position().add(0, player.getEyeHeight() / 2, 0).add(dir.scale(2));
-                player.connection.send(new ClientboundLevelParticlesPacket(ParticleTypes.SOUL_FIRE_FLAME, false, false, pos.x(), pos.y(), pos.z(), (float) dir.x(), (float) dir.y(), (float) dir.z(), 0.1f, 0));
+                var dir = targetPos.getCenter().subtract(player.player.position()).normalize().add(player.player.getRandom().nextFloat() * 0.25, player.player.getRandom().nextFloat() * 0.25, player.player.getRandom().nextFloat() * 0.25);
+                var pos = player.player.position().add(0, player.player.getEyeHeight() / 2, 0).add(dir.scale(2));
+                player.send(new ClientboundLevelParticlesPacket(ParticleTypes.SOUL_FIRE_FLAME, false, false, pos.x(), pos.y(), pos.z(), (float) dir.x(), (float) dir.y(), (float) dir.z(), 0.1f, 0));
             }
         }
     }

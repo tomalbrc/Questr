@@ -35,7 +35,7 @@ public class BreakBlockTaskType implements TaskType {
                     map.put(Keys.BLOCK, blockState.getBlock());
                     map.put(Keys.POSITION, blockPos);
                     map.put(Keys.DISTANCE, (float)blockPos.getCenter().distanceTo(serverPlayer.position()));
-                    serverPlayer.queueQuestEvent(new TaskEvent(serverPlayer, id(), map));
+                    serverPlayer.connection.queueQuestEvent(new TaskEvent(serverPlayer, id(), map));
                 });
             }
         });

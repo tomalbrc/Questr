@@ -31,7 +31,7 @@ public class ShearEntityTaskType implements TaskType {
                 map.put(Keys.ENTITY_TYPE, livingEntity.getType().builtInRegistryHolder().key().location());
                 map.put(Keys.POSITION, livingEntity.getOnPos());
                 map.put(Keys.DISTANCE, livingEntity.distanceTo(serverPlayer));
-                serverPlayer.queueQuestEvent(new TaskEvent(serverPlayer, id(), map));
+                serverPlayer.connection.queueQuestEvent(new TaskEvent(serverPlayer, id(), map));
             });
 
             return EventResult.PASS;

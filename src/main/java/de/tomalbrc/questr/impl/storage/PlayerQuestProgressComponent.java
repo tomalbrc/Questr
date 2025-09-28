@@ -18,13 +18,13 @@ public class PlayerQuestProgressComponent implements ComponentV3 {
     public void readData(ValueInput tag) {
         tag.read("quests", Codec.list(QuestProgress.CODEC)).ifPresent(x -> {
             for (QuestProgress progress : x) {
-                player.addQuestProgress(progress);
+                ProgressList.add(player.getUUID(), progress);
             }
         });
     }
 
     @Override
     public void writeData(ValueOutput tag) {
-        tag.store("quests", Codec.list(QuestProgress.CODEC), player.getActiveQuests().stream().toList());
+        tag.store("quests", Codec.list(QuestProgress.CODEC), ProgressList.getProgress(player.getUUID()).stream().toList());
     }
 }

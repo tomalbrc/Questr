@@ -14,6 +14,7 @@ import de.tomalbrc.questr.impl.json.Config;
 import de.tomalbrc.questr.impl.json.Loader;
 import de.tomalbrc.questr.impl.navigationbar.NavigationBarManager;
 import de.tomalbrc.questr.impl.sidebar.SidebarManager;
+import de.tomalbrc.questr.impl.storage.ProgressList;
 import de.tomalbrc.questr.impl.task.*;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -59,8 +60,9 @@ public class QuestrMod implements ModInitializer {
     public static final ResourceLocation LINE2_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line2");
     public static final ResourceLocation LINE3_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line3");
     public static final ResourceLocation LINE4_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4");
+    public static final ResourceLocation LINE4_JIGGLE_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4_jiggle");
     public static final ResourceLocation LINE5_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line5");
-    public static final List<ResourceLocation> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT);
+    public static final List<ResourceLocation> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT, LINE4_JIGGLE_FONT);
 
     private void addBuiltinTypes() {
         TaskTypes.register(new KillTaskType());
@@ -101,6 +103,7 @@ public class QuestrMod implements ModInitializer {
             FontUtil.loadFont(x, BOXY_FONT);
             FontUtil.loadFont(x, BOXY_NAV_FONT);
             FontUtil.loadFont(x, DIALOG_FONT);
+            FontUtil.loadFont(x, ResourceLocation.fromNamespaceAndPath("avatar-renderer", "pixel"));
             for (ResourceLocation font : LINE_FONTS) {
                 FontUtil.loadFont(x, font);
             }
@@ -136,25 +139,28 @@ public class QuestrMod implements ModInitializer {
     private void addEvents() {
         ServerPlayConnectionEvents.JOIN.register((serverGamePacketListener, packetSender, server) -> {
             for (Quest quest : Quests.all()) {
-                if (quest.lifecycle.automaticSelection() && !serverGamePacketListener.player.hasQuest(quest))
-                    serverGamePacketListener.player.startQuest(quest);
+                if (quest.lifecycle.automaticSelection()) {
+                    if (!ProgressList.has(serverGamePacketListener.player.getUUID(), quest.id))
+                        serverGamePacketListener.startQuest(quest);
+                }
             }
 
-            NAVIGATION.playerJoined(serverGamePacketListener.player, server);
-            SIDEBAR.playerJoined(serverGamePacketListener.player);
+            NAVIGATION.playerJoined(serverGamePacketListener, server);
+            SIDEBAR.playerJoined(serverGamePacketListener);
         });
 
-        ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, packetSender) -> {
-            NAVIGATION.playerLeft(serverGamePacketListener.player, serverGamePacketListener.player.getServer());
-            SIDEBAR.playerLeft(serverGamePacketListener.player, serverGamePacketListener.player.getServer());
-            DIALOG.playerLeft(serverGamePacketListener.player);
+        ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, server) -> {
+            NAVIGATION.playerLeft(serverGamePacketListener, server);
+            SIDEBAR.playerLeft(serverGamePacketListener, server);
+            DIALOG.playerLeft(serverGamePacketListener);
+            ProgressList.remove(serverGamePacketListener.player.getUUID());
         });
 
         ServerTickEvents.END_SERVER_TICK.register((server) -> {
             List<ServerPlayer> list = new ArrayList<>(server.getPlayerList().getPlayers());
             EXECUTOR.execute(() -> {
                 try {
-                    list.forEach(ServerPlayer::tickQuests);
+                    list.forEach(x -> x.connection.tickQuests());
                 } catch (Exception e) {
                     QuestrMod.LOGGER.error("Error ticking player quests: ", e);
                 }
