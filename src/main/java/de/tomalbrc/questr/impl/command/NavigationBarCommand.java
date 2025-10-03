@@ -3,6 +3,7 @@ package de.tomalbrc.questr.impl.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -23,22 +24,38 @@ public class NavigationBarCommand {
                 .literal("questr")
                 .build();
 
-        LiteralCommandNode<CommandSourceStack> removeNode = Commands
-                .literal("remove")
+        LiteralCommandNode<CommandSourceStack> cancelNode = Commands
+                .literal("cancel")
+                .build();
+
+        LiteralCommandNode<CommandSourceStack> offerQuestNode = Commands
+                .literal("offer")
+                .build();
+
+        LiteralCommandNode<CommandSourceStack> startNode = Commands
+                .literal("start")
+                .build();
+
+        LiteralCommandNode<CommandSourceStack> forceStartNode = Commands
+                .literal("force-start")
+                .build();
+
+        LiteralCommandNode<CommandSourceStack> dialogNode = Commands
+                .literal("dialog")
                 .build();
 
 
-        LiteralCommandNode<CommandSourceStack> setNode = Commands
-                .literal("set")
-                .build();
 
-        var nodePlayerSet = Commands.argument("player", EntityArgument.player());
-        var activateIndex = Commands.argument("index", IntegerArgumentType.integer(0,1000));
+        var nodePlayer = Commands.argument("player", EntityArgument.player());
+        var nodeText = Commands.argument("text", StringArgumentType.greedyString());
+        var nodeIndex = Commands.argument("index", IntegerArgumentType.integer(0,1000));
 
-        setNode.addChild(nodePlayerSet.then(activateIndex.executes(NavigationBarCommand::executeSet)).build());
+        dialogNode.addChild(nodePlayer.then(nodeIndex.executes(NavigationBarCommand::executeSet)).build());
 
-        hudNode.addChild(removeNode);
-        hudNode.addChild(setNode);
+        hudNode.addChild(cancelNode);
+        hudNode.addChild(startNode);
+        hudNode.addChild(forceStartNode);
+        hudNode.addChild(dialogNode);
 
         dispatcher.getRoot().addChild(hudNode);
     }

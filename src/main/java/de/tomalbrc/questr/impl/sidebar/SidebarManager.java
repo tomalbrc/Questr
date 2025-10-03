@@ -25,7 +25,7 @@ public class SidebarManager {
     private final Map<ServerGamePacketListenerImpl, Sidebar> playerSidebars = new ConcurrentHashMap<>();
 
     public void add(ServerGamePacketListenerImpl player) {
-        Sidebar sidebar = new Sidebar(TextUtil.parse(String.format("<font:%s>%s</font>", FontUtil.FONT, SmallCapsConverter.toSmallCaps("objectives"))), Sidebar.Priority.LOW);
+        Sidebar sidebar = new Sidebar(TextUtil.parse(String.format("<font:%s>%s</font>", FontUtil.FONT.id(), SmallCapsConverter.toSmallCaps("objectives"))), Sidebar.Priority.LOW);
         sidebar.setUpdateRate(10);
         sidebar.addPlayer(player);
         sidebar.show();
@@ -84,7 +84,7 @@ public class SidebarManager {
                     for (Task task : tasks) {
                         if (task.showProgress()) lines.add(new SimpleSidebarLine(
                                 0,
-                                ComponentAligner.defaultFont(TextUtil.parse(String.format("  <font:%s>%s</font> %s <gray>%d/%d</gray>", QuestrMod.ICON_FONT, (activeQuest.isCompleted(task) ? "\uE10D" : "\uE10C"), task.description(), activeQuest.getProgress(task), task.target()))),
+                                ComponentAligner.defaultFont(TextUtil.parse(String.format("  <font:%s>%s</font> %s <gray>%d/%d</gray>", QuestrMod.ICON_FONT.id(), (activeQuest.isCompleted(task) ? "\uE10D" : "\uE10C"), task.description(), activeQuest.getProgress(task), task.target()))),
                                 BlankFormat.INSTANCE
                         ));
                     }

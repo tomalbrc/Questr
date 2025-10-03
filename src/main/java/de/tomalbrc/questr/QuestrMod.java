@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.chat.FontDescription;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -49,20 +50,21 @@ public class QuestrMod implements ModInitializer {
     public static DialogManager DIALOG = new DialogManager();
     public static Config config = new Config();
 
-    public static final ResourceLocation ICON_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons");
-    public static final ResourceLocation ICON_FONT_NAV = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav");
-    public static final ResourceLocation NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "nav");
-    public static final ResourceLocation NAV_FONT2 = ResourceLocation.fromNamespaceAndPath("questr", "nav2");
-    public static final ResourceLocation BOXY_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy");
-    public static final ResourceLocation BOXY_NAV_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav");
-    public static final ResourceLocation DIALOG_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "dialog");
-    public static final ResourceLocation LINE1_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line1");
-    public static final ResourceLocation LINE2_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line2");
-    public static final ResourceLocation LINE3_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line3");
-    public static final ResourceLocation LINE4_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4");
-    public static final ResourceLocation LINE4_JIGGLE_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4_jiggle");
-    public static final ResourceLocation LINE5_FONT = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line5");
-    public static final List<ResourceLocation> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT, LINE4_JIGGLE_FONT);
+    public static final FontDescription.Resource ICON_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons"));
+    public static final FontDescription.Resource ICON_FONT_NAV = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav"));
+    public static final FontDescription.Resource ICON_FONT_NAV2 = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav2"));
+    public static final FontDescription.Resource NAV_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "nav"));
+    public static final FontDescription.Resource NAV_FONT2 = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath("questr", "nav2"));
+    public static final FontDescription.Resource BOXY_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy"));
+    public static final FontDescription.Resource BOXY_NAV_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav"));
+    public static final FontDescription.Resource DIALOG_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "dialog"));
+    public static final FontDescription.Resource LINE1_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line1"));
+    public static final FontDescription.Resource LINE2_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line2"));
+    public static final FontDescription.Resource LINE3_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line3"));
+    public static final FontDescription.Resource LINE4_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4"));
+    public static final FontDescription.Resource LINE4_JIGGLE_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4_jiggle"));
+    public static final FontDescription.Resource LINE5_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line5"));
+    public static final List<FontDescription.Resource> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT, LINE4_JIGGLE_FONT);
 
     private void addBuiltinTypes() {
         TaskTypes.register(new KillTaskType());
@@ -96,17 +98,18 @@ public class QuestrMod implements ModInitializer {
             x.addData(AssetPaths.soundsAsset(QuestrMod.MODID), soundBuilder.build().toBytes());
 
             FontUtil.registerDefaultFonts(x);
-            FontUtil.loadFont(x, ICON_FONT);
-            FontUtil.loadFont(x, ICON_FONT_NAV);
-            FontUtil.loadFont(x, NAV_FONT);
-            FontUtil.loadFont(x, NAV_FONT2);
-            FontUtil.loadFont(x, BOXY_FONT);
-            FontUtil.loadFont(x, BOXY_NAV_FONT);
-            FontUtil.loadFont(x, DIALOG_FONT);
-            FontUtil.loadFont(x, ResourceLocation.fromNamespaceAndPath("avatar-renderer", "pixel"));
-            for (ResourceLocation font : LINE_FONTS) {
-                FontUtil.loadFont(x, font);
+            var defFont = FontUtil.FONTS.get(FontUtil.FONT);
+            for (var font : LINE_FONTS) {
+                FontUtil.FONTS.put(font.id(), defFont);
             }
+
+            FontUtil.loadFont(x, ICON_FONT.id());
+            FontUtil.FONTS.put(ICON_FONT_NAV2.id(), FontUtil.loadFont(x, ICON_FONT_NAV.id()));
+            FontUtil.FONTS.put(NAV_FONT2.id(), FontUtil.loadFont(x, NAV_FONT.id()));
+            FontUtil.loadFont(x, BOXY_FONT.id());
+            FontUtil.loadFont(x, BOXY_NAV_FONT.id());
+            FontUtil.loadFont(x, DIALOG_FONT.id());
+            FontUtil.loadFont(x, ResourceLocation.fromNamespaceAndPath("avatar-renderer", "pixel"));
         });
         addBuiltinTypes();
         addEvents();

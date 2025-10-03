@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NavigationBarManager {
     private final Map<ServerGamePacketListenerImpl, NavigationBar> playerNavigationBars = new ConcurrentHashMap<>();
 
-    public void add(ServerGamePacketListenerImpl player, String message, BlockPos targetPos) {
-        NavigationBar newData = new NavigationBar(player, message, targetPos);
+    public void add(ServerGamePacketListenerImpl player, BlockPos targetPos) {
+        NavigationBar newData = new NavigationBar(player, targetPos, NavigationBarLayout.createDefaultLayout());
         newData.setVisible(true);
         newData.setActive(true);
         playerNavigationBars.put(player, newData);
@@ -34,7 +34,7 @@ public class NavigationBarManager {
 
     public void playerJoined(ServerGamePacketListenerImpl player, MinecraftServer server) {
         try {
-            this.add(player, "", BlockPos.ZERO);
+            this.add(player, BlockPos.ZERO);
         } catch (Exception e) {
             e.printStackTrace();
         }

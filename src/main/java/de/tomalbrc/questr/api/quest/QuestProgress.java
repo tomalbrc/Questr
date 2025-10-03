@@ -103,7 +103,7 @@ public class QuestProgress {
             this.isCompleted = true;
         }
 
-        if (isCompleted && QuestrMod.config.announceQuestCompletion && serverPlayer.getServer() != null) {
+        if (isCompleted && QuestrMod.config.announceQuestCompletion) {
             serverPlayer.sendSystemMessage(TextUtil.parse(String.format(QuestrMod.config.messages.completedQuestAnnouncement, serverPlayer.getScoreboardName(), quest.title)));
         }
 

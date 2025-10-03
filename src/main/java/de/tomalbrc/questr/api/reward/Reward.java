@@ -1,5 +1,6 @@
 package de.tomalbrc.questr.api.reward;
 
+import de.tomalbrc.questr.QuestrMod;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,7 +33,7 @@ public interface Reward {
         public void apply(ServerPlayer player) {
             var css = player.createCommandSourceStack().withPosition(player.position()).withRotation(player.getRotationVector()).withLevel(player.level()).withSuppressedOutput();
             for (String command : commands) {
-                player.getServer().getCommands().performPrefixedCommand(css, command.replace("%player%", player.getScoreboardName()));
+                QuestrMod.SERVER.getCommands().performPrefixedCommand(css, command.replace("%player%", player.getScoreboardName()));
             }
         }
     }
