@@ -17,12 +17,20 @@ public class NavigationBarLayout {
         return line2;
     }
 
+    public static int width(List<NavigationBarConfig> line) {
+        int w = 0;
+        for (NavigationBarConfig config : line) {
+            w += config.width();
+        }
+        return w;
+    }
+
     public static NavigationBarLayout createDefaultLayout() {
         NavigationBarLayout layout = new NavigationBarLayout();
 
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("custom_text"), 80, "Server-Name"));
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("spacer"), 1, null));
-        layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("navigation"), 110, null));
+        layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("navigator"), 110, null));
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("spacer"), 1, null));
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("world"), 80, null));
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("spacer"), 1, null));
@@ -30,12 +38,9 @@ public class NavigationBarLayout {
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("spacer"), 1, null));
         layout.getLine1().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("tps"), 60, null));
 
-        int w = 0;
-        for (NavigationBarConfig config : layout.getLine1()) {
-            w += config.width();
-        }
+        int w = width(layout.getLine1());
 
-        layout.getLine2().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("navigation"), 110, "Hello, world!"));
+        layout.getLine2().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("navigator"), 110, "Hello, world!"));
         layout.getLine2().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("spacer"), w-110-60, null));
         layout.getLine2().add(new NavigationBarConfig(ResourceLocation.withDefaultNamespace("mspt"), 60, null));
 

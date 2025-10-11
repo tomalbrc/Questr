@@ -16,7 +16,10 @@ import de.tomalbrc.questr.impl.navigationbar.NavigationBarManager;
 import de.tomalbrc.questr.impl.sidebar.SidebarManager;
 import de.tomalbrc.questr.impl.storage.ProgressList;
 import de.tomalbrc.questr.impl.task.*;
+import de.tomalbrc.shaderfx.api.ShaderEffects;
+import de.tomalbrc.shaderfx.api.ShaderUtil;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
+import eu.pb4.polymer.resourcepack.api.PackResource;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundDefinition;
 import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundEntry;
@@ -27,12 +30,21 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,20 +78,38 @@ public class QuestrMod implements ModInitializer {
     public static final FontDescription.Resource LINE5_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line5"));
     public static final List<FontDescription.Resource> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT, LINE4_JIGGLE_FONT);
 
-    private void addBuiltinTypes() {
+    private void addBuiltinTaskTypes() {
         TaskTypes.register(new KillTaskType());
         TaskTypes.register(new BreakBlockTaskType());
         TaskTypes.register(new SendChatMessageTaskType());
         TaskTypes.register(new ShearEntityTaskType());
         TaskTypes.register(new OnTickTaskType());
-
-        //RequirementTypes.register(new DefeatCobblemonRequirementType());
     }
 
     @Override
     public void onInitialize() {
         PolymerResourcePackUtils.addModAssets("questr");
         PolymerResourcePackUtils.markAsRequired();
+
+        ShaderUtil.enableAssets();
+        ShaderUtil.enableAnimojiConversion();
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(x -> EXECUTOR.shutdown());
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(builder -> builder.addResourceConverter((path, resource) -> {
+            if (path.equals("assets/questr/textures/font/frame.png")) {
+                try {
+                    BufferedImage image = ImageIO.read(new ByteArrayInputStream(resource.readAllBytes()));
+                    ShaderUtil.tintEdges(image, ShaderEffects.APERTURE.asFullscreenColor());
+                    var out = new ByteArrayOutputStream();
+                    ImageIO.write(image, "PNG", out);
+                    return PackResource.of(out.toByteArray());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return resource;
+        }));
 
         PolymerResourcePackUtils.RESOURCE_PACK_AFTER_INITIAL_CREATION_EVENT.register(x -> {
             var voices = List.of("male", "female");
@@ -98,7 +128,7 @@ public class QuestrMod implements ModInitializer {
             x.addData(AssetPaths.soundsAsset(QuestrMod.MODID), soundBuilder.build().toBytes());
 
             FontUtil.registerDefaultFonts(x);
-            var defFont = FontUtil.FONTS.get(FontUtil.FONT);
+            var defFont = FontUtil.FONTS.get(FontUtil.FONT.id());
             for (var font : LINE_FONTS) {
                 FontUtil.FONTS.put(font.id(), defFont);
             }
@@ -111,7 +141,8 @@ public class QuestrMod implements ModInitializer {
             FontUtil.loadFont(x, DIALOG_FONT.id());
             FontUtil.loadFont(x, ResourceLocation.fromNamespaceAndPath("avatar-renderer", "pixel"));
         });
-        addBuiltinTypes();
+
+        addBuiltinTaskTypes();
         addEvents();
         addConfigEvents();
 
@@ -150,6 +181,10 @@ public class QuestrMod implements ModInitializer {
 
             NAVIGATION.playerJoined(serverGamePacketListener, server);
             SIDEBAR.playerJoined(serverGamePacketListener);
+
+            var p1 = new ClientboundSetTitlesAnimationPacket(0, 20, 10);
+            var p2 = new ClientboundSetTitleTextPacket(ShaderEffects.effectComponent(ShaderEffects.DIRECTIONAL_GRID.location(), 0x0));
+            serverGamePacketListener.send(new ClientboundBundlePacket(List.of(p1, p2)));
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((serverGamePacketListener, server) -> {
@@ -164,6 +199,11 @@ public class QuestrMod implements ModInitializer {
             EXECUTOR.execute(() -> {
                 try {
                     list.forEach(x -> x.connection.tickQuests());
+                    for (ServerPlayer serverPlayer : list) {
+                        if (!serverPlayer.isRemoved()) {
+                            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.empty()));
+                        }
+                    }
                 } catch (Exception e) {
                     QuestrMod.LOGGER.error("Error ticking player quests: ", e);
                 }
@@ -171,6 +211,8 @@ public class QuestrMod implements ModInitializer {
                 NAVIGATION.tick(server);
                 SIDEBAR.tick(server);
                 DIALOG.tick(server);
+
+
             });
         });
     }

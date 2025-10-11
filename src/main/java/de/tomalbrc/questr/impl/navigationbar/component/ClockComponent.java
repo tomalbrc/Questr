@@ -3,18 +3,28 @@ package de.tomalbrc.questr.impl.navigationbar.component;
 import de.tomalbrc.dialogutils.util.ComponentAligner;
 import de.tomalbrc.dialogutils.util.TextUtil;
 import de.tomalbrc.questr.QuestrMod;
+import de.tomalbrc.questr.impl.navigationbar.NavigationBarConfig;
 import de.tomalbrc.questr.impl.util.Util;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Locale;
 
-public class ClockComponent implements NavBarComponent {
+public class ClockComponent implements NavigationBarComponent {
     private static final String SUN = "\uE104", RAIN = "\uE105", THUNDER = "\uE106", NIGHT = "\uE107";
 
+    final NavigationBarConfig config;
+    final int line;
+
+    public ClockComponent(NavigationBarConfig config, int line) {
+        this.config = config;
+        this.line = line;
+    }
+
     @Override
-    public MutableComponent build(Context context) {
-        ServerLevel level = context.player().level();
+    public MutableComponent getText(ServerPlayer serverPlayer) {
+        ServerLevel level = serverPlayer.level();
         long time = level.dayTime();
 
         String iconStr = SUN;
@@ -23,13 +33,13 @@ public class ClockComponent implements NavBarComponent {
         if (level.isThundering()) iconStr = THUNDER;
 
         var iconComponent = ComponentUtils.icon(iconStr, 1);
-        int width = context.config().width();
+        int width = config.width();
         var timeText = ComponentAligner.align(
-                Util.whiteWithFont(ticksToClock(time), context.lineNumber() == 1 ? QuestrMod.NAV_FONT : QuestrMod.NAV_FONT2),
+                Util.whiteWithFont(ticksToClock(time), line == 1 ? QuestrMod.NAV_FONT : QuestrMod.NAV_FONT2),
                 TextUtil.Alignment.CENTER, width - ComponentAligner.getWidth(iconComponent) - 4
         );
 
-        return ComponentUtils.background(width, context.lineNumber())
+        return ComponentUtils.background(width, line)
                 .append(ComponentAligner.spacer(2))
                 .append(iconComponent)
                 .append(ComponentAligner.spacer(2))

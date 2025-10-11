@@ -10,7 +10,7 @@
     {
       "type": "bitmap",
       "file": "questr:font/ui/mini-icons_8x8.png",
-      "ascent": -10,
+      "ascent": -11,
       "height": 8,
       "chars": [
         "\uE100\uE101\uE102\uE103\uE104\uE105\uE106\uE107",

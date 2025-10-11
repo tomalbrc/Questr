@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-version = project.mod_version
+version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
 base {
@@ -39,16 +39,17 @@ dependencies {
     modImplementation include("eu.pb4:map-canvas-api:${project.mapcanvas_version}")
     modImplementation include("xyz.nucleoid:stimuli:${project.stimuli_version}")
 
+    modImplementation include("net.kyori:adventure-platform-fabric:${project.adventure_platform_version}")
+
     modImplementation include("de.tomalbrc:DialogUtils:${project.dialogutils_version}")
     modImplementation include("de.tomalbrc:avatar-renderer:${project.avatarrenderer_version}")
+    modImplementation include("de.tomalbrc:shaderfx:${project.shaderfx_version}")
 
     implementation include("org.danilopianini:gson-extras:3.3.0")
 
-    // Replace modImplementation with modApi if you expose components in your own API
     modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}"
     modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
-    // Copy the following only if you want to bundle Cardinal Components API as a Jar-in-Jar dependency
-    // (otherwise, you should configure the dependency on Modrinth/Curseforge)
+
     include "org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}"
     include "org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
 }

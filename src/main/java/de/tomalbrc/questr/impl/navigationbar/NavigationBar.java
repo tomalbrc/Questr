@@ -1,7 +1,9 @@
 package de.tomalbrc.questr.impl.navigationbar;
 
 import de.tomalbrc.dialogutils.util.ComponentAligner;
-import de.tomalbrc.questr.impl.navigationbar.component.NavBarComponent;
+import de.tomalbrc.questr.impl.navigationbar.component.NavigationBarComponent;
+import de.tomalbrc.questr.impl.navigationbar.component.type.NavigationBarComponentTypes;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -25,6 +27,9 @@ public class NavigationBar {
     private boolean active;
     private boolean visible;
 
+    private List<NavigationBarComponent> components1;
+    private List<NavigationBarComponent> components2;
+
     public NavigationBar(@NotNull ServerGamePacketListenerImpl player, @NotNull BlockPos targetPos, @NotNull NavigationBarLayout layout) {
         this.player = player;
         this.targetPos = targetPos;
@@ -33,6 +38,13 @@ public class NavigationBar {
         this.visible = true;
         this.bossEvent = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
         this.bossEvent.setProgress(0);
+
+        reload();
+    }
+
+    public void reload() {
+        this.components1 = preBuildLine(layout.getLine1(), 1);
+        this.components2 = preBuildLine(layout.getLine2(), 2);
     }
 
     public Component message(ServerPlayer player) {
@@ -40,29 +52,31 @@ public class NavigationBar {
             return null;
         }
 
-        MutableComponent line1 = buildLine(layout.getLine1(), player, 1);
-        MutableComponent line2 = buildLine(layout.getLine2(), player, 2);
+        MutableComponent line1 = buildLine(components1, player);
+        MutableComponent line2 = buildLine(components2, player);
         int line1Width = ComponentAligner.getWidth(line1);
         int line2Width = ComponentAligner.getWidth(line2);
         return line1.append(ComponentAligner.spacer(-line1Width)).append(line2).append(ComponentAligner.spacer(line1Width-line2Width));
     }
 
-    private MutableComponent buildLine(List<NavigationBarConfig> configs, ServerPlayer player, int lineNumber) {
-        MutableComponent lineComponent = Component.empty();
+    private List<NavigationBarComponent> preBuildLine(List<NavigationBarConfig> configs, int line) {
+        List<NavigationBarComponent> list = new ObjectArrayList<>();
         for (NavigationBarConfig config : configs) {
-            lineComponent.append(buildComponentFromConfig(config, player, lineNumber));
+            list.add(NavigationBarComponentTypes.get(config.type()).orElseThrow().create(config, line));
+        }
+        return list;
+    }
+
+    private MutableComponent buildLine(List<NavigationBarComponent> configs, ServerPlayer player) {
+        MutableComponent lineComponent = Component.empty();
+        for (NavigationBarComponent component : configs) {
+            lineComponent.append(buildComponentFromConfig(component, player));
         }
         return lineComponent;
     }
 
-    private MutableComponent buildComponentFromConfig(NavigationBarConfig config, ServerPlayer player, int lineNumber) {
-        return NavBarComponentRegistry.get(config.type()).map(component -> {
-            var context = new NavBarComponent.Context(player, config, this, lineNumber);
-            return component.build(context);
-        }).orElseGet(() -> {
-            System.err.println("Unknown nav bar component type in layout: " + config.type());
-            return Component.empty();
-        });
+    private MutableComponent buildComponentFromConfig(NavigationBarComponent component, ServerPlayer player) {
+        return component.getText(player);
     }
 
     public @NotNull BlockPos getTargetPos() {
