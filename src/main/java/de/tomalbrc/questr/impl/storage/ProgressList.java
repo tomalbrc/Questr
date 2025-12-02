@@ -15,7 +15,7 @@ public class ProgressList {
     public static Map<UUID, Map<ResourceLocation, QuestProgress>> PROGRESS = new ConcurrentHashMap<>();
 
     public static Collection<QuestProgress> getProgress(UUID uuid) {
-        return PROGRESS.get(uuid).values();
+        return PROGRESS.computeIfAbsent(uuid, x -> new Object2ObjectOpenHashMap<>()).values();
     }
 
     public static void add(UUID uuid, QuestProgress questProgress) {

@@ -26,12 +26,15 @@ import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundEntry;
 import eu.pb4.polymer.resourcepack.extras.api.format.sound.SoundsAsset;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
@@ -39,6 +42,7 @@ import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ARGB;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -61,6 +65,8 @@ public class QuestrMod implements ModInitializer {
     public static SidebarManager SIDEBAR = new SidebarManager();
     public static DialogManager DIALOG = new DialogManager();
     public static Config config = new Config();
+
+    public static final FontDescription.Resource FX_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "fx"));
 
     public static final FontDescription.Resource ICON_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons"));
     public static final FontDescription.Resource ICON_FONT_NAV = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav"));
@@ -99,7 +105,7 @@ public class QuestrMod implements ModInitializer {
             if (path.equals("assets/questr/textures/font/frame.png")) {
                 try {
                     BufferedImage image = ImageIO.read(new ByteArrayInputStream(resource.readAllBytes()));
-                    ShaderUtil.tintEdges(image, ShaderEffects.APERTURE.asFullscreenColor());
+                    image = ShaderUtil.tintEdges(image, ShaderEffects.APERTURE.asFullscreenColor());
                     var out = new ByteArrayOutputStream();
                     ImageIO.write(image, "PNG", out);
                     return PackResource.of(out.toByteArray());
@@ -183,7 +189,7 @@ public class QuestrMod implements ModInitializer {
             SIDEBAR.playerJoined(serverGamePacketListener);
 
             var p1 = new ClientboundSetTitlesAnimationPacket(0, 20, 10);
-            var p2 = new ClientboundSetTitleTextPacket(ShaderEffects.effectComponent(ShaderEffects.DIRECTIONAL_GRID.location(), 0x0));
+            var p2 = new ClientboundSetTitleTextPacket(Component.literal("X").withStyle(Style.EMPTY.withFont(FX_FONT).withShadowColor(0).withColor(0)));
             serverGamePacketListener.send(new ClientboundBundlePacket(List.of(p1, p2)));
         });
 
@@ -236,5 +242,23 @@ public class QuestrMod implements ModInitializer {
     private void loadConfig() {
         loadCategories();
         loadQuests();
+    }
+
+    public static void runSpeedEffect(ServerPlayer serverPlayer, int oldStep, int newStep) {
+        var test = newStep > 0;
+        var oldTest = oldStep > 0;
+        if (test && !oldTest || test && newStep != oldStep) {
+            var txt = ShaderEffects.effectComponent(
+                    ShaderEffects.SPIKE.location(),
+                    ARGB.color(newStep, 0, 0)
+            );
+            var p1 = new ClientboundSetTitlesAnimationPacket(0, 1_00_000, 0);
+            var p2 = new ClientboundSetTitleTextPacket(txt);
+            serverPlayer.connection.send(new ClientboundBundlePacket(List.of(p1, p2)));
+        } else if (!test && oldTest) {
+            var p1 = new ClientboundSetTitlesAnimationPacket(1, 2, 1);
+            var p2 = new ClientboundSetTitleTextPacket(Component.empty());
+            serverPlayer.connection.send(new ClientboundBundlePacket(List.of(p1, p2)));
+        }
     }
 }

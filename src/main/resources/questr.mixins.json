@@ -4,6 +4,7 @@
   "package": "de.tomalbrc.questr.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ServerGamePacketListenerImplMixin",
     "ServerPlayerExt"
   ],
   "client": [

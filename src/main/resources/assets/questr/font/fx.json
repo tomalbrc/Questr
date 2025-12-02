@@ -8,33 +8,6 @@
       ],
       "file": "questr:font/frame.png",
       "type": "bitmap"
-    },
-    {
-      "ascent": 0,
-      "height": 256,
-      "chars": [
-        "A"
-      ],
-      "file": "questr:font/transition-grid.png",
-      "type": "bitmap"
-    },
-    {
-      "ascent": 0,
-      "height": 256,
-      "chars": [
-        "B"
-      ],
-      "file": "questr:font/frame.png",
-      "type": "bitmap"
-    },
-    {
-      "ascent": 0,
-      "height": 256,
-      "chars": [
-        "C"
-      ],
-      "file": "questr:font/frame.png",
-      "type": "bitmap"
     }
   ]
 }
