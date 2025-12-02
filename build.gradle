@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.11-SNAPSHOT'
+    id 'fabric-loom' version '1.12.0-alpha.25'
     id 'maven-publish'
 }
 
@@ -47,11 +47,9 @@ dependencies {
 
     implementation include("org.danilopianini:gson-extras:3.3.0")
 
-    modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}"
-    modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
-
-    include "org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}"
-    include "org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
+    modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}")
+    modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
+    modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-world:${project.cca_version}")
 }
 
 processResources {
