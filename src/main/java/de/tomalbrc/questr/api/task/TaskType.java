@@ -1,12 +1,12 @@
 package de.tomalbrc.questr.api.task;
 
 import de.tomalbrc.questr.api.context.ContextMap;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.Nullable;
 
 public interface TaskType {
-    ResourceLocation id();
+    Identifier id();
 
     default void registerEventListener() {}
 

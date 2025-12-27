@@ -1,13 +1,13 @@
 package de.tomalbrc.questr.api.task;
 
 import de.tomalbrc.questr.QuestrMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class TaskTypes {
-    private static final Map<ResourceLocation, TaskType> REGISTRY = new ConcurrentHashMap<>();
+    private static final Map<Identifier, TaskType> REGISTRY = new ConcurrentHashMap<>();
 
     private TaskTypes() {}
 
@@ -21,7 +21,7 @@ public final class TaskTypes {
         taskType.registerEventListener();
     }
 
-    public static TaskType get(ResourceLocation type) {
+    public static TaskType get(Identifier type) {
         return REGISTRY.get(type);
     }
 }

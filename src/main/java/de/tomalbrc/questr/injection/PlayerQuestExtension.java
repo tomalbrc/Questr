@@ -2,7 +2,7 @@ package de.tomalbrc.questr.injection;
 
 import de.tomalbrc.questr.api.quest.Quest;
 import de.tomalbrc.questr.api.task.TaskEvent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Collection;
 
@@ -11,7 +11,7 @@ public interface PlayerQuestExtension {
         return false;
     }
 
-    default Collection<ResourceLocation> getCompletedQuests() {
+    default Collection<Identifier> getCompletedQuests() {
         return null;
     }
 

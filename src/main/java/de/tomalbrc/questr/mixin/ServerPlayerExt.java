@@ -11,11 +11,12 @@ import de.tomalbrc.questr.impl.storage.ProgressList;
 import de.tomalbrc.questr.injection.PlayerQuestExtension;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,7 +27,9 @@ import java.util.Map;
 public class ServerPlayerExt implements PlayerQuestExtension {
     @Shadow public ServerPlayer player;
 
-    private final Map<ResourceLocation, QuestProgress> quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
+    @Unique
+    private final Map<Identifier, QuestProgress> quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
+    @Unique
     private final List<TaskEvent> quest$events = Collections.synchronizedList(new ObjectArrayList<>());
 
     @Override
@@ -42,7 +45,7 @@ public class ServerPlayerExt implements PlayerQuestExtension {
     }
 
     @Override
-    public Collection<ResourceLocation> getCompletedQuests() {
+    public Collection<Identifier> getCompletedQuests() {
         return List.of();
     }
 

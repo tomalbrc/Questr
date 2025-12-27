@@ -6,7 +6,7 @@ import de.tomalbrc.questr.api.context.Keys;
 import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.task.TaskType;
 import de.tomalbrc.questr.impl.util.ResourceSet;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import xyz.nucleoid.stimuli.Stimuli;
 import xyz.nucleoid.stimuli.event.EventResult;
@@ -18,8 +18,8 @@ public class ShearEntityTaskType implements TaskType {
     public ShearEntityTaskType() {}
 
     @Override
-    public ResourceLocation id() {
-        return ResourceLocation.withDefaultNamespace("shear_entity");
+    public Identifier id() {
+        return Identifier.withDefaultNamespace("shear_entity");
     }
 
     @Override
@@ -28,7 +28,7 @@ public class ShearEntityTaskType implements TaskType {
             if (serverPlayer != null) QuestrMod.EXECUTOR.execute(() -> {
                 var map = ContextMap.of(serverPlayer);
                 map.put(Keys.ENTITY_TAG, ResourceSet.of(livingEntity.getType().builtInRegistryHolder().tags().map(TagKey::location).collect(Collectors.toSet())));
-                map.put(Keys.ENTITY_TYPE, livingEntity.getType().builtInRegistryHolder().key().location());
+                map.put(Keys.ENTITY_TYPE, livingEntity.getType().builtInRegistryHolder().key().identifier());
                 map.put(Keys.POSITION, livingEntity.getOnPos());
                 map.put(Keys.DISTANCE, livingEntity.distanceTo(serverPlayer));
                 serverPlayer.connection.queueQuestEvent(new TaskEvent(serverPlayer, id(), map));

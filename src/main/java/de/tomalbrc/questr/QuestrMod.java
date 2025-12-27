@@ -36,7 +36,7 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -62,20 +62,20 @@ public class QuestrMod implements ModInitializer {
     public static DialogManager DIALOG = new DialogManager();
     public static Config config = new Config();
 
-    public static final FontDescription.Resource ICON_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons"));
-    public static final FontDescription.Resource ICON_FONT_NAV = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav"));
-    public static final FontDescription.Resource ICON_FONT_NAV2 = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav2"));
-    public static final FontDescription.Resource NAV_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "nav"));
-    public static final FontDescription.Resource NAV_FONT2 = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath("questr", "nav2"));
-    public static final FontDescription.Resource BOXY_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy"));
-    public static final FontDescription.Resource BOXY_NAV_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav"));
-    public static final FontDescription.Resource DIALOG_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "dialog"));
-    public static final FontDescription.Resource LINE1_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line1"));
-    public static final FontDescription.Resource LINE2_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line2"));
-    public static final FontDescription.Resource LINE3_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line3"));
-    public static final FontDescription.Resource LINE4_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4"));
-    public static final FontDescription.Resource LINE4_JIGGLE_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line4_jiggle"));
-    public static final FontDescription.Resource LINE5_FONT = new FontDescription.Resource(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "line5"));
+    public static final FontDescription.Resource ICON_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons"));
+    public static final FontDescription.Resource ICON_FONT_NAV = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav"));
+    public static final FontDescription.Resource ICON_FONT_NAV2 = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "mini-icons-nav2"));
+    public static final FontDescription.Resource NAV_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "nav"));
+    public static final FontDescription.Resource NAV_FONT2 = new FontDescription.Resource(Identifier.fromNamespaceAndPath("questr", "nav2"));
+    public static final FontDescription.Resource BOXY_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "boxy"));
+    public static final FontDescription.Resource BOXY_NAV_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "boxy_nav"));
+    public static final FontDescription.Resource DIALOG_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "dialog"));
+    public static final FontDescription.Resource LINE1_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "line1"));
+    public static final FontDescription.Resource LINE2_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "line2"));
+    public static final FontDescription.Resource LINE3_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "line3"));
+    public static final FontDescription.Resource LINE4_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "line4"));
+    public static final FontDescription.Resource LINE4_JIGGLE_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "line4_jiggle"));
+    public static final FontDescription.Resource LINE5_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath(QuestrMod.MODID, "line5"));
     public static final List<FontDescription.Resource> LINE_FONTS = List.of(LINE1_FONT, LINE2_FONT, LINE3_FONT, LINE4_FONT, LINE5_FONT, LINE4_JIGGLE_FONT);
 
     private void addBuiltinTaskTypes() {
@@ -117,12 +117,12 @@ public class QuestrMod implements ModInitializer {
             for (String voice : voices) {
                 for (int i = 1; i < 5; i++) {
                     for (char c = 'a'; c <= 'z'; c++) {
-                        soundBuilder.add(voice + ".voice_" + i + "." + c, SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + c))));
+                        soundBuilder.add(voice + ".voice_" + i + "." + c, SoundEntry.builder().sound(SoundDefinition.builder(Identifier.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + c))));
                     }
 
-                    soundBuilder.add(voice + ".voice_" + i + ".deska", SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "deska"))));
-                    soundBuilder.add(voice + ".voice_" + i + ".gwah", SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "gwah"))));
-                    soundBuilder.add(voice + ".voice_" + i + ".ok", SoundEntry.builder().sound(SoundDefinition.builder(ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "ok"))));
+                    soundBuilder.add(voice + ".voice_" + i + ".deska", SoundEntry.builder().sound(SoundDefinition.builder(Identifier.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "deska"))));
+                    soundBuilder.add(voice + ".voice_" + i + ".gwah", SoundEntry.builder().sound(SoundDefinition.builder(Identifier.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "gwah"))));
+                    soundBuilder.add(voice + ".voice_" + i + ".ok", SoundEntry.builder().sound(SoundDefinition.builder(Identifier.fromNamespaceAndPath(QuestrMod.MODID, voice + "/voice_" + i + "/" + "ok"))));
                 }
             }
             x.addData(AssetPaths.soundsAsset(QuestrMod.MODID), soundBuilder.build().toBytes());
@@ -139,7 +139,7 @@ public class QuestrMod implements ModInitializer {
             FontUtil.loadFont(x, BOXY_FONT.id());
             FontUtil.loadFont(x, BOXY_NAV_FONT.id());
             FontUtil.loadFont(x, DIALOG_FONT.id());
-            FontUtil.loadFont(x, ResourceLocation.fromNamespaceAndPath("avatar-renderer", "pixel"));
+            FontUtil.loadFont(x, Identifier.fromNamespaceAndPath("avatar-renderer", "pixel"));
         });
 
         addBuiltinTaskTypes();
@@ -211,8 +211,6 @@ public class QuestrMod implements ModInitializer {
                 NAVIGATION.tick(server);
                 SIDEBAR.tick(server);
                 DIALOG.tick(server);
-
-
             });
         });
     }

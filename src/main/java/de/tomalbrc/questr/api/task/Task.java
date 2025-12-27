@@ -3,12 +3,12 @@ package de.tomalbrc.questr.api.task;
 import de.tomalbrc.questr.api.condition.Condition;
 import de.tomalbrc.questr.api.context.ContextMap;
 import de.tomalbrc.questr.api.context.Keys;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public record Task(
-        ResourceLocation id,
-        ResourceLocation type,
+        Identifier id,
+        Identifier type,
         String description,
         Condition conditions,
         Condition failConditions,

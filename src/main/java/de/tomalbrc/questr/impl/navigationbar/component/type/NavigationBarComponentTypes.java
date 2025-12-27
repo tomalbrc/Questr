@@ -2,14 +2,14 @@ package de.tomalbrc.questr.impl.navigationbar.component.type;
 
 import de.tomalbrc.questr.QuestrMod;
 import de.tomalbrc.questr.impl.navigationbar.component.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class NavigationBarComponentTypes {
-    private static final Map<ResourceLocation, NavigationBarComponentType<?>> COMPONENTS = new HashMap<>();
+    private static final Map<Identifier, NavigationBarComponentType<?>> COMPONENTS = new HashMap<>();
 
     public static NavigationBarComponentType<ClockComponent> CLOCK = register("clock", ClockComponent::new);
     public static NavigationBarComponentType<CustomTextComponent> CUSTOM_TEXT = register("custom_text", CustomTextComponent::new);
@@ -20,7 +20,7 @@ public class NavigationBarComponentTypes {
     public static NavigationBarComponentType<WorldComponent> WORLD = register("world", WorldComponent::new);
 
     public static <T extends NavigationBarComponent> NavigationBarComponentType<T> register(String path, NavigationBarComponentType.Creator<T> creator) {
-        ResourceLocation id = ResourceLocation.withDefaultNamespace(path);
+        Identifier id = Identifier.withDefaultNamespace(path);
         if (COMPONENTS.containsKey(id)) {
             QuestrMod.LOGGER.warn("Overwriting existing nav bar component registration for id: {}", id);
         }
@@ -31,7 +31,7 @@ public class NavigationBarComponentTypes {
         return type;
     }
 
-    public static Optional<NavigationBarComponentType<?>> get(ResourceLocation type) {
+    public static Optional<NavigationBarComponentType<?>> get(Identifier type) {
         return Optional.ofNullable(COMPONENTS.get(type));
     }
 }

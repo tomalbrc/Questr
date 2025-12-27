@@ -2,7 +2,7 @@ package de.tomalbrc.questr.api.reward;
 
 import de.tomalbrc.questr.QuestrMod;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,7 +18,7 @@ public interface Reward {
         }
     }
 
-    record ItemReward(ResourceLocation item, int count) implements Reward {
+    record ItemReward(Identifier item, int count) implements Reward {
         @Override
         public void apply(ServerPlayer player) {
             var itemInstance = BuiltInRegistries.ITEM.get(item);

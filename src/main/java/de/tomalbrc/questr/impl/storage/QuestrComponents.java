@@ -1,7 +1,7 @@
 package de.tomalbrc.questr.impl.storage;
 
 import de.tomalbrc.questr.QuestrMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -11,7 +11,7 @@ import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 public class QuestrComponents implements EntityComponentInitializer {
     public static final ComponentKey<PlayerQuestProgressComponent> QUESTS =
             ComponentRegistry.getOrCreate(
-                    ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "progress"),
+                    Identifier.fromNamespaceAndPath(QuestrMod.MODID, "progress"),
                     PlayerQuestProgressComponent.class
             );
 

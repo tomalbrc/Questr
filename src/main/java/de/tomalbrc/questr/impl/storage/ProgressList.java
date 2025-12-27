@@ -2,8 +2,7 @@ package de.tomalbrc.questr.impl.storage;
 
 import de.tomalbrc.questr.api.quest.QuestProgress;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
@@ -12,7 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProgressList {
-    public static Map<UUID, Map<ResourceLocation, QuestProgress>> PROGRESS = new ConcurrentHashMap<>();
+    public static Map<UUID, Map<Identifier, QuestProgress>> PROGRESS = new ConcurrentHashMap<>();
 
     public static Collection<QuestProgress> getProgress(UUID uuid) {
         return PROGRESS.get(uuid).values();
@@ -22,7 +21,7 @@ public class ProgressList {
         PROGRESS.computeIfAbsent(uuid, x -> new Object2ObjectOpenHashMap<>()).put(questProgress.questId(), questProgress);
     }
 
-    public static boolean has(UUID uuid, ResourceLocation questId) {
+    public static boolean has(UUID uuid, Identifier questId) {
         return PROGRESS.computeIfAbsent(uuid, x -> new Object2ObjectOpenHashMap<>()).containsKey(questId);
     }
 

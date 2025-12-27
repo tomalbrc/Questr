@@ -7,7 +7,7 @@ import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.task.TaskType;
 import de.tomalbrc.questr.impl.util.ResourceSet;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 
@@ -17,8 +17,8 @@ public class BreakBlockTaskType implements TaskType {
     public BreakBlockTaskType() {}
 
     @Override
-    public ResourceLocation id() {
-        return ResourceLocation.withDefaultNamespace("break_block");
+    public Identifier id() {
+        return Identifier.withDefaultNamespace("break_block");
     }
 
     @Override
@@ -28,7 +28,7 @@ public class BreakBlockTaskType implements TaskType {
                 QuestrMod.EXECUTOR.execute(() -> {
                     var map = ContextMap.of(serverPlayer);
                     if (blockEntity != null)
-                        map.put(Keys.BLOCK_ENTITY_TYPE, blockEntity.getType().builtInRegistryHolder().key().location());
+                        map.put(Keys.BLOCK_ENTITY_TYPE, blockEntity.getType().builtInRegistryHolder().key().identifier());
 
                     map.put(Keys.BLOCK_TAG, ResourceSet.of(blockState.getBlockHolder().tags().map(TagKey::location).collect(Collectors.toSet())));
                     map.put(Keys.BLOCK_STATE, blockState);

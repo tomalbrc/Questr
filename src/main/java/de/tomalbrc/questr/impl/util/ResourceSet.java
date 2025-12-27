@@ -4,7 +4,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
@@ -12,28 +12,28 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-public final class ResourceSet implements SetLike<ResourceLocation> {
-    private final Set<ResourceLocation> ids;
+public final class ResourceSet implements SetLike<Identifier> {
+    private final Set<Identifier> ids;
 
-    public ResourceSet(Set<ResourceLocation> ids) {
+    public ResourceSet(Set<Identifier> ids) {
         this.ids = Set.copyOf(Objects.requireNonNull(ids));
     }
 
-    public static ResourceSet of(ResourceLocation id) {
+    public static ResourceSet of(Identifier id) {
         return new ResourceSet(Set.of(Objects.requireNonNull(id)));
     }
 
-    public static ResourceSet of(Set<ResourceLocation> many) {
+    public static ResourceSet of(Set<Identifier> many) {
         return new ResourceSet(many);
     }
 
     @Override
-    public boolean contains(ResourceLocation element) {
+    public boolean contains(Identifier element) {
         return element != null && ids.contains(element);
     }
 
     @Override
-    public @NotNull Iterator<ResourceLocation> iterator() {
+    public @NotNull Iterator<Identifier> iterator() {
         return ids.iterator();
     }
 
@@ -64,7 +64,7 @@ public final class ResourceSet implements SetLike<ResourceLocation> {
             if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
                 String s = json.getAsString();
                 if (s.isBlank()) throw new JsonParseException("Id can not be empty");
-                return ResourceSet.of(ResourceLocation.parse(s));
+                return ResourceSet.of(Identifier.parse(s));
             }
 
             throw new JsonParseException("Invalid id");

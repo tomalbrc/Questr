@@ -5,7 +5,7 @@ import de.tomalbrc.questr.api.context.ContextMap;
 import de.tomalbrc.questr.api.context.Keys;
 import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.task.TaskType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import xyz.nucleoid.stimuli.Stimuli;
 import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerCommandEvent;
@@ -14,8 +14,8 @@ public class SendCommandTaskType implements TaskType {
     public SendCommandTaskType() {}
 
     @Override
-    public ResourceLocation id() {
-        return ResourceLocation.withDefaultNamespace("send_command");
+    public Identifier id() {
+        return Identifier.withDefaultNamespace("send_command");
     }
 
     @Override

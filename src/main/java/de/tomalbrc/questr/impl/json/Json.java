@@ -16,7 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
@@ -44,7 +44,7 @@ public class Json {
             .registerTypeHierarchyAdapter(Vector3f.class, new SimpleCodecDeserializer<>(ExtraCodecs.VECTOR3F))
             .registerTypeHierarchyAdapter(Vector2f.class, new SimpleCodecDeserializer<>(ExtraCodecs.VECTOR2F))
             .registerTypeHierarchyAdapter(Quaternionf.class, new QuaternionfDeserializer())
-            .registerTypeHierarchyAdapter(ResourceLocation.class, new SimpleCodecDeserializer<>(ResourceLocation.CODEC))
+            .registerTypeHierarchyAdapter(Identifier.class, new SimpleCodecDeserializer<>(Identifier.CODEC))
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
             .registerTypeHierarchyAdapter(Item.class, new RegistryDeserializer<>(BuiltInRegistries.ITEM))
             .registerTypeHierarchyAdapter(ResourceSet.class, new ResourceSet.Deserializer())
@@ -81,7 +81,7 @@ public class Json {
     private record RegistryDeserializer<T>(Registry<T> registry) implements JsonDeserializer<T> {
         @Override
         public T deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
-            return this.registry.getValue(ResourceLocation.parse(element.getAsString()));
+            return this.registry.getValue(Identifier.parse(element.getAsString()));
         }
     }
 }

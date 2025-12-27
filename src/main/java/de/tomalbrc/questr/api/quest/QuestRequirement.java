@@ -1,13 +1,13 @@
 package de.tomalbrc.questr.api.quest;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.util.List;
 
 public record QuestRequirement(
         String permission,
-        List<ResourceLocation> completedQuests
+        List<Identifier> completedQuests
 ) {
     public boolean fulfillsRequirements(ServerGamePacketListenerImpl serverPlayer) {
         ////if (permission == null && (completedQuests == null || completedQuests.isEmpty()))
@@ -17,7 +17,7 @@ public record QuestRequirement(
 
         var completed = serverPlayer.getCompletedQuests();
         if (completedQuests != null) {
-            for (ResourceLocation completedQuest : completedQuests) {
+            for (Identifier completedQuest : completedQuests) {
                 if (!completed.contains(completedQuest))
                     return false;
             }

@@ -1,7 +1,7 @@
 package de.tomalbrc.questr.impl.util;
 
 import de.tomalbrc.questr.QuestrMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Animalese {
-    private static final Map<Character, ResourceLocation> letterSounds = new HashMap<>();
+    private static final Map<Character, Identifier> letterSounds = new HashMap<>();
 
     static {
         loadLetterSounds();
@@ -19,12 +19,12 @@ public class Animalese {
     public static void loadLetterSounds() {
         letterSounds.clear();
         for (char c = 'a'; c <= 'z'; c++) {
-            ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, String.valueOf(Character.toLowerCase(c)));
+            Identifier rl = Identifier.fromNamespaceAndPath(QuestrMod.MODID, String.valueOf(Character.toLowerCase(c)));
             letterSounds.put(c, rl);
         }
 
-        letterSounds.put('?', ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "deska"));
-        letterSounds.put('!', ResourceLocation.fromNamespaceAndPath(QuestrMod.MODID, "gwah"));
+        letterSounds.put('?', Identifier.fromNamespaceAndPath(QuestrMod.MODID, "deska"));
+        letterSounds.put('!', Identifier.fromNamespaceAndPath(QuestrMod.MODID, "gwah"));
     }
 
     public static void playLetter(ServerPlayer player, char c, float volume, float pitch, String gender, String voiceType) {
@@ -32,7 +32,7 @@ public class Animalese {
             return;
         }
 
-        ResourceLocation rl = letterSounds.get(c).withPrefix(voiceType + ".").withPrefix(gender + ".");
+        Identifier rl = letterSounds.get(c).withPrefix(voiceType + ".").withPrefix(gender + ".");
         SoundEvent sound = SoundEvent.createVariableRangeEvent(rl);
 
         player.level().playSound(

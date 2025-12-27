@@ -26,7 +26,7 @@ public class WorldComponent implements NavigationBarComponent {
 
     @Override
     public MutableComponent getText(ServerPlayer serverPlayer) {
-        String worldName = serverPlayer.level().dimension().location().getPath()
+        String worldName = serverPlayer.level().dimension().identifier().getPath()
                 .replace("the_", "")
                 .replace("_", " ");
         

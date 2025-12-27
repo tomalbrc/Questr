@@ -1,6 +1,6 @@
 package de.tomalbrc.questr.api.task;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-public record TaskProgress(ResourceLocation id, int value, long startTime) {
+public record TaskProgress(Identifier id, int value, long startTime) {
 }

@@ -25,7 +25,7 @@ public class ClockComponent implements NavigationBarComponent {
     @Override
     public MutableComponent getText(ServerPlayer serverPlayer) {
         ServerLevel level = serverPlayer.level();
-        long time = level.dayTime();
+        long time = level.getDayTime();
 
         String iconStr = SUN;
         if (!level.isBrightOutside()) iconStr = NIGHT;

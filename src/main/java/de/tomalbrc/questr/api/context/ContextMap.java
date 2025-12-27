@@ -23,7 +23,7 @@ public class ContextMap {
         contextMap.put(Keys.PLAYER, player.getScoreboardName());
         contextMap.put(Keys.IS_RAINING, player.level().isRaining());
         contextMap.put(Keys.IS_THUNDERING, player.level().isThundering());
-        contextMap.put(Keys.DIMENSION, player.level().dimension().location());
+        contextMap.put(Keys.DIMENSION, player.level().dimension().identifier());
         contextMap.put(Keys.PLAYER_POSITION, player.getOnPos());
         contextMap.put(Keys.ITEM_STACK, player.getWeaponItem());
         contextMap.put(Keys.ITEM, player.getWeaponItem().getItem());

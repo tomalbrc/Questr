@@ -4,16 +4,16 @@ import de.tomalbrc.questr.api.context.ContextMap;
 import de.tomalbrc.questr.api.task.Task;
 import de.tomalbrc.questr.api.task.TaskEvent;
 import de.tomalbrc.questr.api.task.TaskType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 public class OnTickTaskType implements TaskType {
-    static ResourceLocation ID = ResourceLocation.withDefaultNamespace("on_tick");
+    static Identifier ID = Identifier.withDefaultNamespace("on_tick");
 
     public OnTickTaskType() {}
 
     @Override
-    public ResourceLocation id() {
+    public Identifier id() {
         return ID;
     }
 

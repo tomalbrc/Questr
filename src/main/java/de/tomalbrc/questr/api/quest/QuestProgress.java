@@ -8,7 +8,7 @@ import de.tomalbrc.questr.QuestrMod;
 import de.tomalbrc.questr.api.task.Task;
 import de.tomalbrc.questr.api.task.TaskEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class QuestProgress {
-    private final ResourceLocation quest;
-    private final Map<ResourceLocation, Integer> taskProgress; // taskId -> count
+    private final Identifier quest;
+    private final Map<Identifier, Integer> taskProgress; // taskId -> count
     private boolean isCompleted;
     private boolean isCancelled;
 
@@ -25,23 +25,23 @@ public class QuestProgress {
 
     public static final Codec<QuestProgress> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    ResourceLocation.CODEC.fieldOf("quest").forGetter(QuestProgress::questId),
-                    Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).fieldOf("task_progress").forGetter(QuestProgress::getTaskProgress),
+                    Identifier.CODEC.fieldOf("quest").forGetter(QuestProgress::questId),
+                    Codec.unboundedMap(Identifier.CODEC, Codec.INT).fieldOf("task_progress").forGetter(QuestProgress::getTaskProgress),
                     Codec.BOOL.fieldOf("is_completed").forGetter(QuestProgress::isCompleted),
                     Codec.BOOL.fieldOf("is_cancelled").forGetter(QuestProgress::isCancelled),
                     Codec.LONG.fieldOf("cooldown_ends_on").forGetter(QuestProgress::getCooldownEndsOn)
             ).apply(instance, QuestProgress::new)
     );
 
-    public QuestProgress(ResourceLocation quest) {
+    public QuestProgress(Identifier quest) {
         this.quest = quest;
         this.taskProgress = new ConcurrentHashMap<>();
         this.isCompleted = false;
         this.cooldownEndsOn = 0;
     }
 
-    public QuestProgress(ResourceLocation quest,
-                         Map<ResourceLocation, Integer> taskProgress,
+    public QuestProgress(Identifier quest,
+                         Map<Identifier, Integer> taskProgress,
                          boolean isCompleted,
                          boolean isCancelled,
                          long cooldownEndsOn) {
@@ -53,11 +53,11 @@ public class QuestProgress {
         this.cooldownEndsOn = cooldownEndsOn;
     }
 
-    public ResourceLocation questId() {
+    public Identifier questId() {
         return this.quest;
     }
 
-    public Map<ResourceLocation, Integer> getTaskProgress() {
+    public Map<Identifier, Integer> getTaskProgress() {
         return this.taskProgress;
     }
 
@@ -69,7 +69,7 @@ public class QuestProgress {
         return this.cooldownEndsOn;
     }
 
-    public boolean incrementTaskProgress(ResourceLocation taskId, TaskEvent event, int amount) {
+    public boolean incrementTaskProgress(Identifier taskId, TaskEvent event, int amount) {
         taskProgress.compute(taskId, (k, current) -> (current == null ? 0 : current) + amount);
         return checkAndCompleteQuest(event.player());
     }
