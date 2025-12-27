@@ -108,7 +108,8 @@ public class NavigationBar {
         if (active) {
             var msg = this.message(player.player);
             if (msg != null) {
-                var packet = new ClientboundBossEventPacket(bossEvent.getId(), new ClientboundBossEventPacket.UpdateNameOperation(msg));
+                bossEvent.setName(msg);
+                var packet = ClientboundBossEventPacket.createUpdateNamePacket(bossEvent);
                 player.player.connection.send(packet);
             }
         }

@@ -1,6 +1,5 @@
 package de.tomalbrc.questr;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.dialogutils.util.FontUtil;
 import de.tomalbrc.questr.api.quest.Quest;
@@ -53,7 +52,7 @@ import java.util.concurrent.Executors;
 
 public class QuestrMod implements ModInitializer {
     public static final String MODID = "questr";
-    public static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("questr-worker-%d").build());
+    public static ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     public static final Logger LOGGER = LogUtils.getLogger();
     public static MinecraftServer SERVER;
@@ -94,7 +93,7 @@ public class QuestrMod implements ModInitializer {
         ShaderUtil.enableAssets();
         ShaderUtil.enableAnimojiConversion();
 
-        ServerLifecycleEvents.SERVER_STOPPING.register(x -> EXECUTOR.shutdown());
+        ServerLifecycleEvents.SERVER_STOPPING.register(x -> EXECUTOR.shutdownNow());
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(builder -> builder.addResourceConverter((path, resource) -> {
             if (path.equals("assets/questr/textures/font/frame.png")) {
                 try {

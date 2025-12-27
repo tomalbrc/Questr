@@ -11,12 +11,18 @@ import de.tomalbrc.questr.impl.storage.ProgressList;
 import de.tomalbrc.questr.injection.PlayerQuestExtension;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.network.Connection;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,9 +34,15 @@ public class ServerPlayerExt implements PlayerQuestExtension {
     @Shadow public ServerPlayer player;
 
     @Unique
-    private final Map<Identifier, QuestProgress> quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
+    private Map<Identifier, QuestProgress> quest$quests;
     @Unique
-    private final List<TaskEvent> quest$events = Collections.synchronizedList(new ObjectArrayList<>());
+    private List<TaskEvent> quest$events;
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void q$onInit(MinecraftServer minecraftServer, Connection connection, ServerPlayer serverPlayer, CommonListenerCookie commonListenerCookie, CallbackInfo ci) {
+        quest$quests = Collections.synchronizedMap(new Object2ReferenceOpenHashMap<>());
+        quest$events = Collections.synchronizedList(new ObjectArrayList<>());
+    }
 
     @Override
     public boolean startQuest(Quest quest) {

@@ -6,6 +6,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,7 +15,8 @@ public class ProgressList {
     public static Map<UUID, Map<Identifier, QuestProgress>> PROGRESS = new ConcurrentHashMap<>();
 
     public static Collection<QuestProgress> getProgress(UUID uuid) {
-        return PROGRESS.get(uuid).values();
+        var p = PROGRESS.get(uuid);
+        return p != null ? p.values() : Collections.EMPTY_LIST;
     }
 
     public static void add(UUID uuid, QuestProgress questProgress) {
